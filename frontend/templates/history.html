@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Lịch sử – Vical AI{% endblock %}
+{% block body_class %}bg-surface text-on-surface font-body{% endblock %}
+{% block page %}
+<!-- TopAppBar Integration -->
+<header class="fixed top-0 right-0 left-0 md:left-64 z-40 bg-surface/80 backdrop-blur-md flex justify-between items-center h-16 px-6 border-b border-outline-variant/30">
+<h1 class="text-xl font-bold text-secondary font-serif">Lịch sử</h1>
+<div class="flex items-center gap-6">
+<div class="hidden sm:flex items-center bg-surface-container-low border border-secondary px-4 py-1.5 rounded-full focus-within:ring-1 focus-within:ring-secondary transition-all">
+<span class="material-symbols-outlined text-secondary text-sm mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none text-sm focus:ring-0 p-0 text-on-surface w-48 placeholder-secondary/50" placeholder="Tìm kiếm hội thoại..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-secondary hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<a href="{% url 'ask_question' %}" class="text-secondary hover:text-primary transition-all" title="Hỏi đáp">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+</a>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline">
+<img alt="User Portrait" class="w-full h-full object-cover" data-alt="Minimalist user profile portrait placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDob2CddfEZodZOy_xAPmNBhQdFVHDbuDVtdAlWUqYXkqjUzxqhF5URBoSxdZNqYZ4HAMd8H8XBKylj-z8gvIlNh4iCXeUpU8Ayik3QI20qeYv3vT_131cEdRWXNQLK6598ZiNZSlDtVwtpvxb-HNG4ppbTLyfZhNYAg2BruJwHFa15w0r5Pf4JuI4f-SZHG8yccS4GloKlcO9CJs1mY7aTt0XZISnmW0RswXi02Yrss-aqFwNsZvC-sDNA4J2QLrGzO9dfKawsuaY"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-24 pb-[4.5rem] md:pb-12 px-6 lg:px-12 min-h-screen">
+<div class="max-w-5xl mx-auto">
+<!-- Page Heading & Filters -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<div>
+<h2 class="text-4xl font-black text-primary mb-2 tracking-tight font-serif">Dấu ấn thời gian</h2>
+<p class="text-on-surface-variant font-body">Xem lại những hành trình khám phá lịch sử của bạn.</p>
+</div>
+<div class="flex p-1 bg-surface-container rounded-lg border border-outline-variant/50">
+<span class="px-6 py-1.5 text-sm font-bold bg-primary text-on-primary shadow-sm rounded transition-all">Tất cả</span>
+<a href="{% url 'ask_question' %}" class="px-6 py-1.5 text-sm font-medium text-on-surface-variant hover:text-primary transition-all rounded">Hỏi đáp</a>
+<a href="{% url 'persona_chat' %}" class="px-6 py-1.5 text-sm font-medium text-on-surface-variant hover:text-primary transition-all rounded">Persona chat</a>
+</div>
+</div>
+<!-- History List Grid -->
+<div class="grid grid-cols-1 gap-6">
+<!-- History Item 1 -->
+<div class="group relative bg-surface-container-low border border-outline-variant/30 p-6 rounded transition-all hover:shadow-md hover:translate-y-[-2px] flex items-start gap-5">
+<div class="flex-shrink-0 w-12 h-12 rounded bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="waves" style="font-variation-settings: 'FILL' 1;">waves</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-xl font-bold text-secondary leading-tight font-serif">Trận Bạch Đằng năm 938</h3>
+<span class="text-[10px] font-bold text-on-tertiary-container bg-tertiary-fixed px-2 py-0.5 rounded border border-tertiary/20 uppercase tracking-widest">Hỏi đáp</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2 mb-3 leading-relaxed">
+                            Về chiến thuật cọc gỗ: Tại sao Ngô Quyền lại chọn thời điểm thủy triều để tấn công và vai trò của các tướng lĩnh địa phương trong việc...
+                        </p>
+<div class="flex items-center gap-4 text-xs text-secondary/60">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span>
+                                2 giờ trước
+                            </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="chat_bubble">chat_bubble</span>
+                                12 tin nhắn
+                            </span>
+</div>
+</div>
+<div class="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-secondary hover:bg-secondary/10 rounded transition-colors" title="Reopen">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+<button class="p-2 text-primary hover:bg-primary/10 rounded transition-colors" title="Delete">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- History Item 2 -->
+<div class="group relative bg-surface-container-low border border-outline-variant/30 p-6 rounded transition-all hover:shadow-md hover:translate-y-[-2px] flex items-start gap-5">
+<div class="flex-shrink-0 w-12 h-12 rounded bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-xl font-bold text-secondary leading-tight font-serif">Đối thoại cùng Nguyễn Trãi</h3>
+<span class="text-[10px] font-bold text-on-primary bg-primary px-2 py-0.5 rounded border border-primary/20 uppercase tracking-widest">Persona</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2 mb-3 leading-relaxed">
+                            Thảo luận về tư tưởng "Nhân nghĩa" trong Bình Ngô Đại Cáo và những trăn trở của ông trong giai đoạn ở ẩn tại Côn Sơn...
+                        </p>
+<div class="flex items-center gap-4 text-xs text-secondary/60">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span>
+                                5 giờ trước
+                            </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="chat_bubble">chat_bubble</span>
+                                24 tin nhắn
+                            </span>
+</div>
+</div>
+<div class="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-secondary hover:bg-secondary/10 rounded transition-colors">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+<button class="p-2 text-primary hover:bg-primary/10 rounded transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- History Item 3 -->
+<div class="group relative bg-surface-container-low border border-outline-variant/30 p-6 rounded transition-all hover:shadow-md hover:translate-y-[-2px] flex items-start gap-5">
+<div class="flex-shrink-0 w-12 h-12 rounded bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" data-icon="castle" style="font-variation-settings: 'FILL' 1;">castle</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-xl font-bold text-secondary leading-tight font-serif">Kiến trúc Kinh thành Huế</h3>
+<span class="text-[10px] font-bold text-on-tertiary-container bg-tertiary-fixed px-2 py-0.5 rounded border border-tertiary/20 uppercase tracking-widest">Hỏi đáp</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2 mb-3 leading-relaxed">
+                            Tìm hiểu về phong thủy trong việc quy hoạch Hoàng thành và ý nghĩa của các biểu tượng rồng trên các mái điện Thái Hòa...
+                        </p>
+<div class="flex items-center gap-4 text-xs text-secondary/60">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span>
+                                Hôm qua
+                            </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="chat_bubble">chat_bubble</span>
+                                8 tin nhắn
+                            </span>
+</div>
+</div>
+<div class="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 text-secondary hover:bg-secondary/10 rounded transition-colors">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+<button class="p-2 text-primary hover:bg-primary/10 rounded transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Empty State Section (Hidden by default) -->
+<div class="hidden flex-col items-center justify-center py-24 text-center">
+<div class="relative w-64 h-64 mb-8">
+<div class="absolute inset-0 bg-primary/5 rounded-full blur-3xl"></div>
+<div class="relative flex items-center justify-center h-full">
+<span class="material-symbols-outlined text-8xl text-outline-variant" data-icon="history_edu" style="font-variation-settings: 'wght' 200;">history_edu</span>
+</div>
+</div>
+<h3 class="text-2xl font-bold text-on-surface mb-2 font-serif">Bạn chưa có cuộc trò chuyện nào</h3>
+<p class="text-on-surface-variant max-w-sm mx-auto mb-8 font-body">Bắt đầu một hành trình mới vào quá khứ ngay hôm nay để lưu giữ những kiến thức quý giá.</p>
+<a href="{% url 'ask_question' %}" class="inline-flex items-center gap-2 px-8 py-4 bg-primary text-on-primary rounded font-bold shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                    Tạo hội thoại mới
+                </a>
+</div>
+<!-- Bottom Load More / Pagination -->
+<div class="mt-12 flex justify-center">
+<button class="px-6 py-3 border border-outline text-secondary font-medium rounded hover:bg-surface-container-high transition-all flex items-center gap-2">
+                    Xem các cuộc hội thoại cũ hơn
+                    <span class="material-symbols-outlined text-sm" data-icon="expand_more">expand_more</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Background Decoration -->
+<div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+<div class="absolute inset-0 opacity-[0.05]" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCrvq4lLd5dCPz3ZFc-B1zzLq27QD6giKGkycMWE78IsSEQBraOhZPjZRbYfAleFvm8DITZgYya_va_h7qJttswDPCsNDw-A-wM3yVuuHiB1w3Fe6I400HbS8RvWS-eE4m8nwX0yNOd7YfZfMD3RAW7j3UQrCHJMSVdwJ2KSGu4YJNvMfmnxEHZoyeubakv81lTv-cBFRvv2e5BdHO8mv3FUAD8Jwt68WbkHmZWJdn-R-DtzjRiAgyryyXo64qs7zGe_yxu5ZntUcI');"></div>
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary/5 rounded-full blur-3xl"></div>
+</div>
+{% endblock %}

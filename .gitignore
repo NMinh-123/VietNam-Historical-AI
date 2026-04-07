@@ -1,0 +1,13 @@
+**/raw_data/
+**/lightrag_storage/
+qdrant_storage/
+qdrant_db/
+*.json
+__pycache__/
+*.pyc
+.DS_Store
+.env
+Vical_Moi/
+venv/
+.venv/
+**/site-packages/

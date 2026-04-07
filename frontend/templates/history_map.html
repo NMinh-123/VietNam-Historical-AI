@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Vical AI – Trợ lý Lịch sử Việt Nam{% endblock %}
+{% block page %}
+<main class="flex-1 flex flex-col md:ml-64 relative w-full h-full">
+        <header class="absolute top-0 right-0 left-0 z-40 bg-background/80 backdrop-blur-md border-b border-outline-variant/50 px-6 py-4 flex justify-between items-center">
+            <h1 class="text-lg font-black text-secondary uppercase tracking-widest">Địa đồ Đại Việt</h1>
+            <div class="flex items-center gap-3">
+                <div class="bg-surface border border-outline-variant rounded-sm flex items-center px-3 py-1.5">
+                    <span class="material-symbols-outlined text-outline text-sm mr-2">search</span>
+                    <input type="text" placeholder="Tìm địa danh cổ..." class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder-outline/60 text-secondary">
+                </div>
+            </div>
+        </header>
+        <div class="flex-1 relative mt-16 map-pattern overflow-hidden flex items-center justify-center">
+            
+            <div class="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
+                <span class="material-symbols-outlined text-[200px] text-secondary">public</span>
+            </div>
+
+            <div class="absolute top-6 left-6 w-80 bg-surface/95 backdrop-blur-md border border-tertiary/40 rounded-sm shadow-2xl p-6 z-20 transition-opacity duration-300" id="info-card">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-2 h-2 rounded-full bg-primary"></span>
+                    <span class="text-[10px] font-black text-primary uppercase tracking-widest">Thông tin lãnh thổ</span>
+                </div>
+                
+                <h2 class="font-headline text-3xl text-secondary font-black mb-1" id="ui-title">Văn Lang</h2>
+                <p class="text-tertiary text-xs font-bold tracking-widest uppercase mb-4" id="ui-time">2879 TCN - 258 TCN</p>
+                
+                <div class="space-y-3 text-[13px] text-secondary border-t border-outline-variant/30 pt-4">
+                    <p class="flex justify-between border-b border-outline-variant/20 pb-2">
+                        <span class="font-medium opacity-70">Kinh đô:</span>
+                        <strong id="ui-capital" class="text-right">Phong Châu (Phú Thọ)</strong>
+                    </p>
+                    <p class="flex justify-between border-b border-outline-variant/20 pb-2">
+                        <span class="font-medium opacity-70">Quốc hiệu:</span>
+                        <strong id="ui-name" class="text-right">Văn Lang</strong>
+                    </p>
+                    <p class="leading-relaxed mt-2" id="ui-desc">
+                        Nhà nước đầu tiên của người Việt cổ, chia làm 15 bộ. Lãnh thổ chủ yếu nằm ở khu vực Bắc Bộ và Bắc Trung Bộ ngày nay.
+                    </p>
+                </div>
+                
+                <a href="{% url 'ask_question' %}" class="mt-6 w-full py-2 bg-background border border-outline hover:border-primary hover:text-primary text-secondary rounded-sm font-bold transition-all text-xs flex justify-center items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px]">chat</span>
+                    Hỏi AI về ranh giới này
+                </a>
+            </div>
+
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-surface/95 backdrop-blur-md border border-tertiary/30 rounded-full px-8 py-4 shadow-xl z-20">
+                <div class="flex justify-between items-center relative">
+                    <div class="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-[2px] bg-outline-variant -z-10"></div>
+                    
+                    <button class="timeline-btn active relative bg-surface border-2 border-outline-variant text-secondary text-[11px] font-bold px-4 py-1.5 rounded-full transition-all" onclick="changePeriod(0, this)">Văn Lang</button>
+                    
+                    <button class="timeline-btn relative bg-surface border-2 border-outline-variant text-secondary text-[11px] font-bold px-4 py-1.5 rounded-full transition-all" onclick="changePeriod(1, this)">Đại Cồ Việt</button>
+                    
+                    <button class="timeline-btn relative bg-surface border-2 border-outline-variant text-secondary text-[11px] font-bold px-4 py-1.5 rounded-full transition-all" onclick="changePeriod(2, this)">Đại Việt (Lý-Trần)</button>
+                    
+                    <button class="timeline-btn relative bg-surface border-2 border-outline-variant text-secondary text-[11px] font-bold px-4 py-1.5 rounded-full transition-all" onclick="changePeriod(3, this)">Đại Nam</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Dữ liệu giả lập cho các thời kỳ
+        const mapData = [
+            {
+                title: "Văn Lang", time: "2879 TCN - 258 TCN", capital: "Phong Châu (Phú Thọ)", name: "Văn Lang",
+                desc: "Nhà nước đầu tiên của người Việt cổ, chia làm 15 bộ. Lãnh thổ chủ yếu nằm ở khu vực Bắc Bộ và Bắc Trung Bộ ngày nay."
+            },
+            {
+                title: "Đại Cồ Việt", time: "968 - 1054", capital: "Hoa Lư (Ninh Bình)", name: "Đại Cồ Việt",
+                desc: "Quốc hiệu đầu tiên sau thời kỳ Bắc thuộc. Đinh Bộ Lĩnh dẹp loạn 12 sứ quân, thống nhất đất nước, khẳng định bờ cõi độc lập."
+            },
+            {
+                title: "Đại Việt", time: "1054 - 1400", capital: "Thăng Long (Hà Nội)", name: "Đại Việt",
+                desc: "Thời kỳ phát triển rực rỡ dưới triều Lý - Trần. Lãnh thổ bắt đầu mở rộng về phương Nam qua các cuộc giao tranh với Chiêm Thành."
+            },
+            {
+                title: "Đại Nam", time: "1804 - 1945", capital: "Phú Xuân (Huế)", name: "Đại Nam / Việt Nam",
+                desc: "Thời triều Nguyễn, lãnh thổ Việt Nam đạt đến độ rộng lớn nhất trong lịch sử, kéo dài từ ải Nam Quan đến mũi Cà Mau."
+            }
+        ];
+
+        function changePeriod(index, btnElement) {
+            // Xóa class 'active' ở tất cả các nút
+            document.querySelectorAll('.timeline-btn').forEach(btn => btn.classList.remove('active'));
+            // Thêm class 'active' cho nút vừa bấm
+            btnElement.classList.add('active');
+
+            // Cập nhật thông tin trên thẻ Card
+            const data = mapData[index];
+            document.getElementById('ui-title').innerText = data.title;
+            document.getElementById('ui-time').innerText = data.time;
+            document.getElementById('ui-capital').innerText = data.capital;
+            document.getElementById('ui-name').innerText = data.name;
+            document.getElementById('ui-desc').innerText = data.desc;
+            
+            // Ở đây sau này bạn có thể gọi thêm hàm để thay đổi hình ảnh bản đồ thực tế
+            // ví dụ: map.setImage(data.mapImageUrl);
+        }
+    </script>
+    {% endblock %}

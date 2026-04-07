@@ -1,0 +1,10 @@
+langchain
+langchain-community
+pypdf
+openai
+lightrag-hku
+chromadb
+qdrant-client
+fastembed
+sentence-transformers
+numpy

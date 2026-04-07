@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Dòng thời gian – Vical AI{% endblock %}
+{% block body_class %}bg-[#f4ecd8] text-[#2d1f1b] font-body min-h-screen overflow-x-hidden{% endblock %}
+{% block page %}
+<header class="fixed top-0 right-0 left-0 md:left-64 z-40 bg-[#f4ecd8]/90 backdrop-blur-md flex justify-between items-center h-16 px-8 border-b border-[#5D4037]/10">
+<div class="flex items-center gap-4">
+<h1 class="text-lg font-black text-[#5D4037] uppercase tracking-widest font-headline">Ký Ức Đại Việt</h1>
+</div>
+<div class="flex items-center gap-8">
+<div class="hidden sm:flex items-center bg-[#5D4037]/5 border border-[#5D4037]/20 rounded px-4 py-1.5 focus-within:border-[#D4AF37] transition-all">
+<span class="material-symbols-outlined text-[#5D4037] text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 text-[#5D4037] placeholder-[#5D4037]/40" placeholder="Tìm sự kiện sử liệu..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#5D4037] hover:text-[#B71C1C] cursor-pointer" data-icon="notifications">notifications</span>
+<a href="{% url 'history' %}" class="text-[#5D4037] hover:text-[#B71C1C] cursor-pointer" title="Lịch sử"><span class="material-symbols-outlined" data-icon="history_edu">history_edu</span></a>
+<div class="w-8 h-8 rounded border-2 border-[#D4AF37] flex items-center justify-center overflow-hidden">
+<img alt="User Portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxAe0eyKpfWQs7u0sYyzf6c17mhgmvOj1U_gRl3wUdhpj2Dd3btQKqW_4SsZcYhbHpPku44ElgpxLBFgQ7WTsNjxB_hCoDDt22fIwO7Gx8gnxMHqqBXB6opvnAGLyw6n7aaV8TWKYcLYnSE3zhEkWXV3uGAQj34qt3UW4HPjxvhIlOyMMhxmRn1uM4lELBBNOPbUcr4TK90ac-T2bKx3Gjm5HV9CQfgtEDcGx0LKjIAoO598_0cfxIX8jhQDm_ugSynhinNoBa9Og"/>
+</div>
+</div>
+</div>
+</header>
+<main class="md:ml-64 pt-16 relative w-full bg-[#f4ecd8] pb-[4.5rem] md:pb-8 min-h-screen flex flex-col">
+<div class="p-6 sm:p-10 z-10 bg-[#f4ecd8] shrink-0">
+<div class="max-w-3xl mx-auto flex flex-col items-center text-center space-y-6">
+<div class="space-y-2">
+<h2 class="text-5xl font-black text-[#5D4037] font-headline tracking-tighter">Kiến Tạo Dòng Thời Gian</h2>
+<p class="text-[#5D4037]/70 font-medium italic">Sử sách ghi chép, AI phục dựng tinh hoa trăm họ.</p>
+</div>
+<div class="w-full flex gap-0 p-1 bg-white/50 border-2 border-[#5D4037] shadow-[4px_4px_0px_#5D4037]">
+<input class="flex-1 bg-transparent border-none focus:ring-0 px-6 py-4 text-lg placeholder-[#5D4037]/40 font-bold" placeholder="Nhập kỷ nguyên (VD: 1400–1427)" type="text"/>
+<button class="bg-[#5D4037] text-[#D4AF37] px-10 py-4 font-black uppercase tracking-widest hover:bg-[#4a332c] transition-all flex items-center gap-2">
+<span>Truy xuất</span>
+<span class="material-symbols-outlined text-sm">history_edu</span>
+</button>
+</div>
+</div>
+</div>
+<div class="relative flex-1 min-h-0 w-full bg-[#f2e8cf]/30 py-8 md:py-12">
+<div class="absolute inset-0 scroll-texture pointer-events-none"></div>
+<div class="absolute top-1/2 left-0 right-0 h-1 bg-[#D4AF37] -translate-y-1/2 shadow-[0_0_8px_rgba(212,175,55,0.4)] pointer-events-none"></div>
+<div class="timeline-scroll overflow-x-auto overflow-y-visible flex items-stretch md:items-center gap-12 md:gap-20 px-6 sm:px-16 md:px-32 py-8 md:py-12 relative w-full min-h-[min(70vh,520px)]">
+<div class="min-w-[340px] flex flex-col items-center group cursor-pointer">
+<div class="mb-6 opacity-60 group-hover:opacity-100 transition-opacity">
+<span class="text-[#5D4037] font-black text-xs tracking-[0.3em] uppercase">Triều Trần</span>
+</div>
+<div class="w-5 h-5 bg-[#D4AF37] border-4 border-[#f4ecd8] shadow-md relative z-20 group-hover:rotate-45 transition-transform duration-500"></div>
+<div class="mt-10 parchment-texture p-8 border-2 border-[#5D4037] shadow-[8px_8px_0px_rgba(93,64,55,0.1)] max-w-sm transform group-hover:-translate-y-3 transition-transform relative">
+<div class="absolute -top-4 left-6 bg-[#D4AF37] text-[#5D4037] px-4 py-1 text-[10px] font-black uppercase tracking-widest shadow-sm border border-[#5D4037]/20">
+                        Hào khí Đông A
+                    </div>
+<h3 class="text-4xl font-black text-[#B71C1C] mt-2 italic font-headline">1285</h3>
+<h4 class="text-xl font-black text-[#5D4037] mt-1 font-headline leading-tight">Kháng chiến Nguyên Mông lần 2</h4>
+<p class="text-sm text-[#5D4037]/80 mt-4 leading-relaxed font-medium">Hội nghị Diên Hồng bừng cháy ý chí quyết tâm của muôn dân dưới sự lãnh đạo của Hưng Đạo Đại vương.</p>
+<div class="mt-6 flex items-center gap-2 text-[#5D4037] font-black text-[10px] uppercase tracking-widest border-t border-[#5D4037]/10 pt-4">
+<span class="material-symbols-outlined text-sm">menu_book</span>
+                        Minh triết sử liệu
+                    </div>
+</div>
+</div>
+<div class="min-w-[440px] flex flex-col items-center group">
+<div class="mb-6">
+<span class="text-white font-black text-[10px] tracking-[0.2em] uppercase bg-[#B71C1C] px-4 py-1 shadow-sm">Bản hùng ca sử việt</span>
+</div>
+<div class="w-7 h-7 bg-[#B71C1C] border-4 border-[#f4ecd8] shadow-[0_0_20px_rgba(183,28,28,0.3)] relative z-20 rotate-45 scale-110"></div>
+<div class="mt-10 parchment-texture p-10 border-4 border-[#5D4037] shadow-[12px_12px_0px_#B71C1C] relative overflow-hidden">
+<div class="absolute -top-12 -right-12 w-40 h-40 bg-[#B71C1C]/5 rounded-full blur-3xl"></div>
+<div class="flex justify-between items-start">
+<h3 class="text-6xl font-black text-[#B71C1C] italic font-headline">1418</h3>
+<span class="material-symbols-outlined text-[#D4AF37] text-5xl" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<h4 class="text-3xl font-black text-[#5D4037] mt-3 font-headline italic leading-none">Khởi nghĩa Lam Sơn</h4>
+<p class="text-lg text-[#5D4037] mt-6 leading-relaxed font-bold italic">
+                        Lê Lợi phất cờ khởi nghĩa tại Lam Sơn, quy tụ hào kiệt tứ phương, mở đầu mười năm kháng chiến chống quân Minh gian khổ nhưng anh dũng.
+                    </p>
+<div class="mt-8 flex gap-8 border-t border-[#5D4037]/20 pt-6">
+<div class="flex flex-col">
+<span class="text-[9px] uppercase text-[#5D4037]/60 font-black tracking-tighter">Chủ tướng</span>
+<span class="text-md font-black text-[#B71C1C] uppercase">Lê Lợi</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[9px] uppercase text-[#5D4037]/60 font-black tracking-tighter">Phát tích</span>
+<span class="text-md font-black text-[#B71C1C] uppercase">Thanh Hóa</span>
+</div>
+</div>
+<button class="mt-8 w-full py-3 bg-[#5D4037] text-[#D4AF37] font-black text-xs uppercase tracking-[0.2em] hover:bg-[#B71C1C] hover:text-white transition-all border border-[#D4AF37]/30 shadow-inner">
+                        Vẽ lại Bản đồ Chiến sự
+                    </button>
+</div>
+</div>
+<div class="min-w-[340px] flex flex-col items-center group cursor-pointer">
+<div class="mb-6 opacity-60 group-hover:opacity-100 transition-opacity">
+<span class="text-[#5D4037] font-black text-xs tracking-[0.3em] uppercase">Hậu Lê</span>
+</div>
+<div class="w-5 h-5 bg-[#D4AF37] border-4 border-[#f4ecd8] shadow-md relative z-20 group-hover:rotate-45 transition-transform"></div>
+<div class="mt-10 parchment-texture p-8 border-2 border-[#5D4037] shadow-[8px_8px_0px_rgba(93,64,55,0.1)] max-w-sm transform group-hover:-translate-y-3 transition-transform">
+<h3 class="text-4xl font-black text-[#B71C1C] italic font-headline">1427</h3>
+<h4 class="text-xl font-black text-[#5D4037] mt-1 font-headline leading-tight">Chiến thắng Chi Lăng</h4>
+<p class="text-sm text-[#5D4037]/80 mt-4 leading-relaxed font-medium">Trận quyết chiến chiến lược quét sạch viện binh nhà Minh, buộc Vương Thông phải đầu hàng.</p>
+<div class="mt-6 flex items-center gap-2 text-[#5D4037] font-black text-[10px] uppercase tracking-widest border-t border-[#5D4037]/10 pt-4">
+<span class="material-symbols-outlined text-sm">history_edu</span>
+                        Bình Ngô Đại Cáo
+                    </div>
+</div>
+</div>
+<div class="min-w-[340px] flex flex-col items-center group cursor-pointer">
+<div class="mb-6 opacity-60 group-hover:opacity-100 transition-opacity">
+<span class="text-[#5D4037] font-black text-xs tracking-[0.3em] uppercase">Cận Đại</span>
+</div>
+<div class="w-5 h-5 bg-[#D4AF37] border-4 border-[#f4ecd8] shadow-md relative z-20 group-hover:rotate-45 transition-transform"></div>
+<div class="mt-10 parchment-texture p-8 border-2 border-[#5D4037] shadow-[8px_8px_0px_rgba(93,64,55,0.1)] max-w-sm transform group-hover:-translate-y-3 transition-transform">
+<h3 class="text-4xl font-black text-[#B71C1C] italic font-headline">1789</h3>
+<h4 class="text-xl font-black text-[#5D4037] mt-1 font-headline leading-tight">Đại phá quân Thanh</h4>
+<p class="text-sm text-[#5D4037]/80 mt-4 leading-relaxed font-medium">Vua Quang Trung tiến quân thần tốc, đại phá 29 vạn quân Thanh tại Ngọc Hồi - Đống Đa.</p>
+<div class="mt-6 flex items-center gap-2 text-[#5D4037] font-black text-[10px] uppercase tracking-widest border-t border-[#5D4037]/10 pt-4">
+<span class="material-symbols-outlined text-sm">explore</span>
+                        Hành trình thần tốc
+                    </div>
+</div>
+</div>
+<div class="min-w-[120px] shrink-0 md:min-w-[200px]" aria-hidden="true"></div>
+</div>
+<div class="sticky bottom-4 z-30 mx-auto mt-6 flex w-fit max-w-[calc(100vw-2rem)] items-center gap-2 p-1 bg-[#5D4037] backdrop-blur-md border border-[#D4AF37]/50 shadow-2xl rounded-sm">
+<button class="p-2 text-[#D4AF37] hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-xl">zoom_out</span>
+</button>
+<div class="w-px h-6 bg-[#D4AF37]/30 mx-1"></div>
+<span class="px-6 text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.3em]">Kỷ: 1400 - 1800</span>
+<div class="w-px h-6 bg-[#D4AF37]/30 mx-1"></div>
+<button class="p-2 text-[#D4AF37] hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-xl">zoom_in</span>
+</button>
+<div class="w-px h-6 bg-[#D4AF37]/30 mx-1"></div>
+<button class="p-2 text-[#D4AF37] hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-xl">share</span>
+</button>
+</div>
+</div>
+<button type="button" class="fixed right-10 w-16 h-16 bg-[#B71C1C] text-[#D4AF37] shadow-[6px_6px_0px_#5D4037] flex items-center justify-center hover:-translate-y-1 transition-transform z-40 border-2 border-[#5D4037] bottom-[calc(2.5rem+4.25rem)] md:bottom-10">
+<span class="material-symbols-outlined text-3xl">auto_stories</span>
+</button>
+</main>
+{% endblock %}

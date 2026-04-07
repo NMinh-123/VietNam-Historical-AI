@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Vical AI – Trò chuyện tiền nhân{% endblock %}
+{% block body_class %}bg-background font-body text-on-surface antialiased overflow-hidden{% endblock %}
+{% block page %}
+<main class="md:ml-64 min-h-screen flex flex-col relative ancient-texture pb-[4.5rem] md:pb-0">
+<header class="bg-surface/80 backdrop-blur-md fixed top-0 right-0 left-0 md:left-64 z-40 flex justify-between items-center h-16 px-6 border-b border-outline-variant/30">
+<div class="flex items-center gap-4">
+<span class="text-xl font-black text-secondary font-headline">Vical AI</span>
+<div class="hidden md:flex gap-4 ml-8">
+<span class="text-on-surface-variant font-medium">Đối thoại tiền nhân</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-surface-container flex items-center px-4 py-1.5 rounded-full ring-antique-gold/30 focus-within:ring-2">
+<span class="material-symbols-outlined text-outline text-lg mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-outline" placeholder="Tìm kiếm sử liệu..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">notifications</span>
+<a href="{% url 'history' %}" class="text-on-surface-variant hover:text-primary transition-colors" title="Lịch sử"><span class="material-symbols-outlined cursor-pointer">history_edu</span></a>
+<img alt="User profile" class="w-8 h-8 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDT6UJcXsBMA70RJW7AH_d0TqTxtsy1_kCxgsqVNNxsmxC_rebmiUD3SF396bmBWcGUmwSjQ64tyBUvwCJ9zE-B5lSTGTQg12ZPq74CAev2bYNjYsp06lB-Kp97NxMsh7a_143MuHFYuTmnQhcd9-926jbcoFC_6oBF5jpmvKT1yd1ienzQwswtDaVE_J72VMCHfqMk8HPSQJNZUEBgKD5mlYSh1t6g6yrxcRlyTtRuSf7B7Oa4qjGvTdzg5Fhr2BTSaQWZSlZRyrOE"/>
+</div>
+</div>
+</header>
+<section class="flex-1 mt-16 p-6 flex flex-col lg:flex-row gap-8 max-h-[calc(100vh-64px)] overflow-hidden">
+<div class="lg:w-1/3 flex flex-col gap-6">
+<div class="parchment-bg gold-border rounded-xl p-8 flex flex-col items-center text-center shadow-lg relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-antique-gold via-primary to-antique-gold"></div>
+<div class="relative w-48 h-64 mb-6">
+<img alt="Tran Hung Dao" class="w-full h-full object-cover rounded-xl shadow-lg border-2 border-antique-gold/40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGFchj3jIq_Wb8F03-iwLJnLgApulKBuOSs3JLafSgwiH-5y0zcUMxGvlE6dlDYXaSvUZVpWaGKdSEx8xR0XtiYbOMPZsO1ruo6SMnSxwZ5lAef5JKgAj9zZwv5NYAQI18nfpaDSg2WFW6GRlhHZI3r1QdY9JWvdWsAihKoahiGtjTqn0Nj26J8QhP_Rw3PhO7muXigIsDaqKowqr3yOW_UMBDlkfRt7ye1ZwVqnGjc_irxktDoKnMJl_MG_6o3ldttxhkxkA4g"/>
+<div class="absolute -bottom-4 -right-4 bg-antique-gold text-secondary px-3 py-1 rounded-full text-xs font-black uppercase tracking-tighter shadow-md">
+                        Trang nghiêm
+                    </div>
+</div>
+<h2 class="font-headline text-3xl font-black text-primary mb-1">Trần Hưng Đạo</h2>
+<span class="bg-primary/10 text-primary border border-primary/20 px-4 py-1 rounded-full text-sm font-bold mb-4">Thời Trần (Thế kỷ XIII)</span>
+<p class="text-secondary body-md leading-relaxed font-medium">
+                    Quốc công Tiết chế, anh hùng dân tộc với ba lần chiến thắng quân Nguyên Mông lừng lẫy địa cầu.
+                </p>
+</div>
+<div class="bg-surface-container/50 rounded-xl p-4 backdrop-blur-sm border border-antique-gold/20">
+<h3 class="label-md font-bold text-secondary mb-3 px-2">Khởi hành cùng bậc vĩ nhân khác</h3>
+<div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+<div class="min-w-[70px] flex flex-col items-center gap-2 group cursor-pointer">
+<img alt="Ly Thai To" class="w-14 h-14 rounded-full object-cover border-2 border-transparent group-hover:border-antique-gold transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgvDc4a05K4zu42l81u1qfmS2kigZQTfuURno6EKKUGWC1oirhLgb9cLmaj9qEAI-6gMg06Sasp5kua_whzUAKZDjIbaHXmfPdV8Nx-2aJ-124yIH_g_GKJlNgnyNdocIt4S501tmLdIMdFq4YLmjQEW-n0rCi31DCB5SAzD7u05B5h2vwC-iEyHtHaWcrWi2WWTUKzT8WIWvUmP1qGIw8UTzVO4647MJiltrlGmOBepevORpOfL-3s0LZJ7EatdPpA5ld7GBMvo"/>
+<span class="text-[10px] text-center font-bold text-secondary">Lý Thái Tổ</span>
+</div>
+<div class="min-w-[70px] flex flex-col items-center gap-2 group cursor-pointer">
+<div class="w-14 h-14 rounded-full bg-surface-container-low flex items-center justify-center border-2 border-antique-gold shadow-md ring-2 ring-antique-gold/20">
+<img alt="Tran Hung Dao" class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZ1b0YHIgHJyTA9WlsmXUEIIP8h_ltVyNDGb-gajuQNYPnQquOPgZaRSSon3Dsxur3Ilu_iZpHWTFQ7vIBJa2IzMw0V1vyts-6s1td0rl2GwM7YBn6VLkx7vV-ouZaShBOvvTOseHLoYtmlw5yvUsJ_IbxFl65T5WIneeaVVZ-1Q4AIVXm42dAvCXvLG3qQ34oZNxsgK0rIUOjsoPIMv96dYqIWDG6fq9RbOZ-Z5AsBJUa49q11NG1NRMlYdELjF4g_bdTaU7GUTU"/>
+</div>
+<span class="text-[10px] text-center font-black text-primary">Trần Hưng Đạo</span>
+</div>
+<div class="min-w-[70px] flex flex-col items-center gap-2 group cursor-pointer">
+<img alt="Nguyen Trai" class="w-14 h-14 rounded-full object-cover border-2 border-transparent group-hover:border-antique-gold transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpWbooaAk6OhvHOkqClf12FXmbz_mK_W-lQaWAur7bTAOsPisY2gVGDJO7pYpFipdggkS2mxKL1XTjvtRjx4ZCVR39qLsIV1MBSblWR-Bnd0d0kChoOSZFubv_gd0nxDRO96S80iS13-kkmVyYkSm2eNEfuhDJPdBPT6FN2UAY_mEi2roclQvdLCihQNTyQAxyQinEFzG0KOfVa6qIuHnbcFQB2GgcUIhSJ03O2NS-qb-u7IkvH_BGgMPtGda4NXb-JX8I4o4qUII"/>
+<span class="text-[10px] text-center font-bold text-secondary">Nguyễn Trãi</span>
+</div>
+<div class="min-w-[70px] flex flex-col items-center gap-2 group cursor-pointer">
+<img alt="Hai Ba Trung" class="w-14 h-14 rounded-full object-cover border-2 border-transparent group-hover:border-antique-gold transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiquRO1kSE13mwSODui9wgaKHXPcv8XDH-hS_7o_-_9_4jO0vasUGhWDeA4Q-GILqputMzDGo9FaJy3oMH6Ad5Dwute9BBPFCtoBNFpLpU7R61Snqs4oQha_en9XsREwwGvHq6_ftFjEOdRKw1q-WOsw5ZI1P23vOWEw1N13l7_3GkwbobOJOvmO4EUSlWOvdrkeXO4DCOYxPaTZu_A3VWYcw12w9a06YfN-7tCBCilFFt55uQsc2aLVHxXFoPKp4bwZVtDx59cXE"/>
+<span class="text-[10px] text-center font-bold text-secondary">Hai Bà Trưng</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-1 flex flex-col bg-surface-container-lowest rounded-2xl shadow-xl border border-antique-gold/20 overflow-hidden relative">
+<div class="absolute inset-0 opacity-[0.05] pointer-events-none parchment-bg"></div>
+<div id="chat-scroll" class="flex-1 overflow-y-auto p-6 space-y-8 relative">
+<div id="chat-messages" class="flex flex-col gap-6">
+<div class="flex flex-col items-start max-w-[85%]">
+<div class="flex items-center gap-2 mb-2 ml-4">
+<span class="text-[10px] font-black text-primary tracking-widest uppercase">Hưng Đạo Đại Vương</span>
+<div class="w-1 h-1 bg-antique-gold rounded-full"></div>
+<span class="text-[10px] text-secondary/60">1285 AD</span>
+</div>
+<div class="scroll-effect p-6 rounded-lg border-x-[6px] border-antique-gold/60 relative gold-border">
+<div class="absolute -left-2 -top-3 w-4 h-6 bg-antique-gold rounded shadow-md"></div>
+<div class="absolute -left-2 -bottom-3 w-4 h-6 bg-antique-gold rounded shadow-md"></div>
+<div class="absolute -right-2 -top-3 w-4 h-6 bg-antique-gold rounded shadow-md"></div>
+<div class="absolute -right-2 -bottom-3 w-4 h-6 bg-antique-gold rounded shadow-md"></div>
+<p class="font-headline text-lg text-secondary leading-relaxed italic font-medium">
+                            "Ta thường tới bữa quên ăn, nửa đêm vỗ gối; ruột đau như cắt, nước mắt đầm đìa; chỉ căm tức chưa xả thịt lột da, nuốt gan uống máu quân thù. Dẫu cho trăm thân này phơi ngoài nội cỏ, nghìn xác này gói trong da ngựa, ta cũng vui lòng."
+                        </p>
+<div class="mt-4 pt-4 border-t border-dashed border-antique-gold/40 flex items-center justify-between">
+<p class="text-sm text-secondary font-bold">Hậu thế hỏi ta về kế sách giữ nước, ta sẵn lòng đàm đạo.</p>
+<button class="p-2 hover:bg-antique-gold/20 rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary text-xl" data-weight="fill">volume_up</span>
+</button>
+</div>
+</div>
+<div id="typing-indicator" class="hidden flex items-center gap-3 ml-4">
+<div class="flex gap-1">
+<div class="w-2 h-2 bg-antique-gold rounded-full animate-bounce"></div>
+<div class="w-2 h-2 bg-antique-gold rounded-full animate-bounce [animation-delay:0.2s]"></div>
+<div class="w-2 h-2 bg-antique-gold rounded-full animate-bounce [animation-delay:0.4s]"></div>
+</div>
+<span class="text-xs italic text-secondary font-bold">Đại Vương đang suy ngẫm...</span>
+</div>
+</div>
+<div class="p-6 bg-surface-container/80 backdrop-blur-md border-t-2 border-antique-gold/30">
+<div class="relative flex items-center">
+<button class="absolute left-4 p-2 text-secondary hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<textarea id="user-message" class="w-full pl-14 pr-36 py-4 bg-surface-container-lowest rounded-xl border-2 border-antique-gold/20 focus:border-antique-gold focus:ring-0 shadow-inner resize-none body-md text-secondary" placeholder="Bày tỏ lòng thành và hỏi bậc tiền nhân..." rows="1"></textarea>
+<div class="absolute right-3 flex items-center gap-2">
+<button class="p-2 bg-primary text-antique-gold rounded-lg hover:brightness-110 transition-all shadow-md" type="button">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<button id="send-message" class="flex items-center gap-2 px-5 py-2.5 bg-primary text-antique-gold rounded-lg font-black shadow-lg hover:scale-105 transition-transform border border-antique-gold/30" type="button">
+<span>Gửi</span>
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-center gap-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-antique-gold shadow-sm"></span>
+<span class="text-[10px] font-black text-primary uppercase tracking-widest">Sắc thái: Trang nghiêm</span>
+</div>
+<div class="flex items-center gap-2 opacity-40">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Ngữ cảnh: Bình dân</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="fixed bottom-0 right-0 w-64 h-64 opacity-[0.03] pointer-events-none select-none overflow-hidden">
+<svg class="w-full h-full fill-primary" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-width="0.5"></circle>
+<path d="M50 10 L50 20 M90 50 L80 50 M50 90 L50 80 M10 50 L20 50" stroke="currentColor" stroke-width="0.5"></path>
+<circle cx="50" cy="50" fill="currentColor" r="5"></circle>
+</svg>
+</div>
+</main>
+<script>
+  (function () {
+    const textarea = document.getElementById("user-message");
+    const sendBtn = document.getElementById("send-message");
+    const messages = document.getElementById("chat-messages");
+    const typing = document.getElementById("typing-indicator");
+    const scrollBox = document.getElementById("chat-scroll");
+
+    if (!textarea || !sendBtn || !messages) {
+      return;
+    }
+
+    function scrollToBottom() {
+      if (scrollBox) {
+        scrollBox.scrollTop = scrollBox.scrollHeight;
+      }
+    }
+
+    function addUserBubble(text) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "flex flex-col items-end max-w-[80%] ml-auto";
+      wrapper.innerHTML = `
+        <div class="bg-primary text-on-primary px-6 py-4 rounded-2xl rounded-tr-none shadow-md border-b-4 border-black/10">
+          <p class="body-md font-medium"></p>
+        </div>
+        <span class="text-[10px] text-secondary/60 mt-2 mr-2">Bạn</span>
+      `;
+      wrapper.querySelector("p").textContent = text;
+      messages.appendChild(wrapper);
+    }
+
+    function addBotBubble(text) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "flex flex-col items-start max-w-[85%]";
+      wrapper.innerHTML = `
+        <div class="flex items-center gap-2 mb-2 ml-4">
+          <span class="text-[10px] font-black text-primary tracking-widest uppercase">Hưng Đạo Đại Vương</span>
+          <div class="w-1 h-1 bg-antique-gold rounded-full"></div>
+          <span class="text-[10px] text-secondary/60">Vical AI</span>
+        </div>
+        <div class="scroll-effect p-6 rounded-lg border-x-[6px] border-antique-gold/60 relative gold-border bg-surface-container-lowest/80">
+          <p class="font-headline text-lg text-secondary leading-relaxed italic font-medium whitespace-pre-line"></p>
+        </div>
+      `;
+      wrapper.querySelector("p").textContent = text;
+      messages.appendChild(wrapper);
+    }
+
+    async function sendMessage() {
+      const content = textarea.value.trim();
+      if (!content) return;
+
+      addUserBubble(content);
+      textarea.value = "";
+      if (typing) {
+        typing.classList.remove("hidden");
+        typing.classList.add("flex");
+      }
+      scrollToBottom();
+
+      try {
+        const response = await fetch("{% url 'persona_chat_api' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ question: content }),
+        });
+
+        const data = await response.json();
+        if (!response.ok || data.error) {
+          addBotBubble(data.error || "Có lỗi xảy ra khi gọi chatbot.");
+        } else {
+          addBotBubble(data.answer || "Không có câu trả lời.");
+        }
+      } catch (err) {
+        addBotBubble("Không thể kết nối tới máy chủ chatbot. Vui lòng kiểm tra lại backend.");
+      } finally {
+        if (typing) {
+          typing.classList.add("hidden");
+          typing.classList.remove("flex");
+        }
+        scrollToBottom();
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    textarea.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+  })();
+</script>
+{% endblock %}
