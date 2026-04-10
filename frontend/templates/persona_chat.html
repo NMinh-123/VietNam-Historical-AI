@@ -164,7 +164,15 @@
       messages.appendChild(wrapper);
     }
 
-    function addBotBubble(text) {
+    function formatSourceLabel(source) {
+      if (!source) {
+        return "";
+      }
+
+      return source.label || source.title || source.file_name || "Tài liệu không rõ tên";
+    }
+
+    function addBotBubble(text, sources = [], verification = "") {
       const wrapper = document.createElement("div");
       wrapper.className = "flex flex-col items-start max-w-[85%]";
       wrapper.innerHTML = `
@@ -175,9 +183,34 @@
         </div>
         <div class="scroll-effect p-6 rounded-lg border-x-[6px] border-antique-gold/60 relative gold-border bg-surface-container-lowest/80">
           <p class="font-headline text-lg text-secondary leading-relaxed italic font-medium whitespace-pre-line"></p>
+          <div class="mt-4 pt-4 border-t border-dashed border-antique-gold/40 hidden" data-sources-wrapper>
+            <p class="text-[11px] font-black uppercase tracking-[0.18em] text-primary">Sử liệu tham chiếu</p>
+            <ul class="mt-3 space-y-2 text-sm text-secondary/90" data-sources-list></ul>
+          </div>
+          <p class="mt-4 text-[11px] text-secondary/60 hidden" data-verification></p>
         </div>
       `;
       wrapper.querySelector("p").textContent = text;
+
+      const sourcesWrapper = wrapper.querySelector("[data-sources-wrapper]");
+      const sourcesList = wrapper.querySelector("[data-sources-list]");
+      const verificationNode = wrapper.querySelector("[data-verification]");
+
+      if (Array.isArray(sources) && sources.length > 0 && sourcesWrapper && sourcesList) {
+        sourcesWrapper.classList.remove("hidden");
+        sources.forEach(function (source) {
+          const item = document.createElement("li");
+          item.className = "leading-relaxed";
+          item.textContent = `[nguon=${source.index}] ${formatSourceLabel(source)}`;
+          sourcesList.appendChild(item);
+        });
+      }
+
+      if (verification && verificationNode) {
+        verificationNode.classList.remove("hidden");
+        verificationNode.textContent = verification;
+      }
+
       messages.appendChild(wrapper);
     }
 
@@ -206,7 +239,11 @@
         if (!response.ok || data.error) {
           addBotBubble(data.error || "Có lỗi xảy ra khi gọi chatbot.");
         } else {
-          addBotBubble(data.answer || "Không có câu trả lời.");
+          addBotBubble(
+            data.answer || "Không có câu trả lời.",
+            data.sources || [],
+            data.verification || ""
+          );
         }
       } catch (err) {
         addBotBubble("Không thể kết nối tới máy chủ chatbot. Vui lòng kiểm tra lại backend.");

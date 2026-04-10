@@ -8,7 +8,7 @@ def load_pdfs_from_folder(folder_path):
         print(f"not found folder: {folder_path}")
         return documents
     files = os.listdir(folder_path)
-    pdf_files = [f for f in files if f.endswith(".pdf")]
+    pdf_files = sorted(f for f in files if f.endswith(".pdf"))
     
     print(f"Find {len(pdf_files)} file PDF")
     for file in pdf_files:
