@@ -18,7 +18,7 @@
     <link href="{% static 'css/style.css' %}" rel="stylesheet" />
     {% block extra_head %}{% endblock %}
   </head>
-  <body class="h-screen flex {% block body_class %}{% endblock %}">
+  <body class="h-screen flex min-h-0 {% block body_class %}{% endblock %}">
     {# --- Sidebar (desktop) --- #}
     <aside class="bg-secondary w-64 fixed left-0 top-0 hidden md:flex flex-col shadow-xl z-50 py-6 dong-son-pattern h-screen">
       <div class="px-6 mb-10">
@@ -103,5 +103,6 @@
         <span class="text-[9px] font-medium uppercase tracking-tighter text-center leading-tight">Lịch sử</span>
       </a>
     </nav>
+  {% block extra_scripts %}{% endblock %}
   </body>
 </html>

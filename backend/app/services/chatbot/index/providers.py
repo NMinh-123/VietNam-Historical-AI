@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
+
+_logger = logging.getLogger(__name__)
 
 from .config import (
     GEMINI_OPENAI_BASE_URL,
@@ -51,10 +54,12 @@ class AsyncRequestRateLimiter:
         self.window_seconds = window_seconds
         self.min_interval_seconds = window_seconds / max_requests
         self._next_available_at = 0.0
-        self._lock = asyncio.Lock()
+        self._lock: asyncio.Lock | None = None  # lazy-init để tránh tạo ngoài event loop
 
     async def acquire(self) -> None:
         """Chờ tới thời điểm request kế tiếp được phép chạy."""
+        if self._lock is None:
+            self._lock = asyncio.Lock()
         loop = asyncio.get_running_loop()
         async with self._lock:
             now = loop.time()
@@ -80,7 +85,7 @@ def _build_gemini_llm_func(
         max_requests=requests_per_minute,
         window_seconds=60.0,
     )
-    request_semaphore = asyncio.Semaphore(max_concurrency)
+    request_semaphore: asyncio.Semaphore | None = None  # lazy-init để tránh tạo ngoài event loop
 
     async def _gemini_llm_func(
         prompt,
@@ -89,6 +94,9 @@ def _build_gemini_llm_func(
         **kwargs,
     ):
         """Gọi provider qua lớp bảo vệ concurrency, rate limit và retry lỗi tạm thời."""
+        nonlocal request_semaphore
+        if request_semaphore is None:
+            request_semaphore = asyncio.Semaphore(max_concurrency)
         async with request_semaphore:
             for attempt_index in range(transient_max_retries):
                 await request_limiter.acquire()
@@ -116,11 +124,10 @@ def _build_gemini_llm_func(
                         )
                     ]
                     status_code = _extract_exception_status_code(exc)
-                    print(
+                    _logger.warning(
                         "LLM provider tạm quá tải hoặc chạm retryable error "
-                        f"(status={status_code}, attempt={attempt_index + 1}/"
-                        f"{transient_max_retries}). "
-                        f"Chờ {retry_delay_seconds:.0f}s rồi thử lại..."
+                        "(status=%s, attempt=%d/%d). Chờ %.0fs rồi thử lại...",
+                        status_code, attempt_index + 1, transient_max_retries, retry_delay_seconds,
                     )
                     await asyncio.sleep(retry_delay_seconds)
 

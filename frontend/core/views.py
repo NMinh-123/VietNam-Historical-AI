@@ -20,7 +20,7 @@ _QUERY_ENGINE = None
 def _get_query_engine():
     global _QUERY_ENGINE
     if _QUERY_ENGINE is None:
-        from services.query_engine import VietnamHistoryQueryEngine  # type: ignore
+        from services.chatbot.retrieve_and_query import VietnamHistoryQueryEngine  # type: ignore
 
         _QUERY_ENGINE = VietnamHistoryQueryEngine()
     return _QUERY_ENGINE
@@ -61,13 +61,12 @@ def persona_chat_api(request):
         sources = chat_result.get("sources", [])
         verification = chat_result.get(
             "verification",
-            "Luồng trả lời: services.query_engine -> services.index",
+            "Luồng trả lời: services.retrieve_and_query -> services.index",
         )
     except Exception as exc:  # pragma: no cover
-        return JsonResponse(
-            {"error": f"Lỗi hệ thống chatbot: {exc!s}"},
-            status=500,
-        )
+        import logging
+        logging.getLogger(__name__).error("Chatbot pipeline error", exc_info=exc)
+        return JsonResponse({"error": "Lỗi hệ thống, vui lòng thử lại sau."}, status=500)
 
     return JsonResponse(
         {

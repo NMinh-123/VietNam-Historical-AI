@@ -1,6 +1,9 @@
 {% extends "base.html" %}
+
 {% block title %}Vical AI – Hỏi đáp{% endblock %}
+
 {% block body_class %}ask-full-chat h-screen overflow-hidden bg-background font-body text-on-surface{% endblock %}
+
 {% block extra_head %}
 <style>
   .ask-full-chat nav[aria-label="Điều hướng nhanh"] {
@@ -8,131 +11,313 @@
   }
 </style>
 {% endblock %}
+
 {% block page %}
-<main class="flex h-screen flex-col md:ml-64 relative bg-[#F5F2EA] parchment-texture">
-<div class="absolute inset-0 pattern-overlay pointer-events-none"></div>
-<!-- TOP BAR -->
-<header class="fixed top-0 right-0 left-0 md:left-64 z-40 bg-[#F5F2EA]/90 backdrop-blur-md flex justify-between items-center h-16 px-6 border-b border-[#D7CCC8]/50">
-<div class="flex items-center gap-4 flex-1 max-w-2xl">
-<div class="relative w-full group">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5D4037]/60 text-lg" data-icon="search">search</span>
-<input class="w-full bg-[#E7E0D2]/50 border-none rounded-sm pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#5D4037] transition-all placeholder:text-[#5D4037]/40" placeholder="Tra cứu dư địa chí, nhân vật..." type="text"/>
-</div>
-</div>
-<div class="flex items-center gap-3 ml-4">
-<button class="w-9 h-9 flex items-center justify-center text-[#5D4037] hover:bg-[#E7E0D2] transition-all rounded-sm">
-<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-</button>
-<a href="{% url 'history' %}" class="w-9 h-9 flex items-center justify-center text-[#5D4037] hover:bg-[#E7E0D2] transition-all rounded-sm" title="Lịch sử">
-<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
-</a>
-<div class="h-6 w-[1px] bg-[#D7CCC8] mx-1"></div>
-<img alt="User Portrait" class="w-8 h-8 rounded-sm object-cover border border-[#D7CCC8]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVMqjuI9-89-zU77UEv1R845eRoEs6Xrit6-WpXDANcgVqr8qFPsxMgOa7btAXplUUrL7em3Wb3qtB-X40tchCn_rmWlVUryBu-ZJ0d9o1ttkqj5tT0hp96mhkvUa_DFB4QSBAeBuncOSD9Rw2T0KCL4F5D04qUGKCWvDwZ8KVyCgHCVbYMIZbbDTrZwYcD9WNZuNBqnggKfu301R0lQmvPTBjE-ez0lNMkye1K4za54f6tMmIDEw1JLKhcgop6V8ePPmUnqaSuCA"/>
-</div>
-</header>
-<!-- CHAT INTERFACE AREA -->
-<section class="flex-1 mt-16 overflow-y-auto px-6 py-6 md:py-8 flex flex-col gap-8 scroll-smooth">
-<div class="flex justify-center">
-<span class="px-4 py-1 border-y border-[#D7CCC8] text-[10px] font-bold text-[#5D4037]/60 uppercase tracking-[0.2em]">24 Tháng 5, 2024</span>
-</div>
-<div class="flex justify-end max-w-4xl w-full mx-auto">
-<div class="flex flex-col items-end gap-2 max-w-[80%]">
-<div class="bg-[#8E352E] text-white px-6 py-4 rounded-sm shadow-md relative">
-<p class="text-sm leading-relaxed font-medium">Hãy cho tôi biết về vai trò của Ngô Quyền trong chiến thắng Bạch Đằng năm 938 và ý nghĩa của nó đối với nền độc lập Việt Nam.</p>
-</div>
-<span class="text-[10px] text-[#5D4037]/50 font-bold uppercase tracking-tighter px-2">14:20 • Đã gửi</span>
-</div>
-</div>
-<div class="flex justify-start max-w-4xl w-full mx-auto">
-<div class="flex items-start gap-4 max-w-[90%]">
-<div class="w-10 h-10 rounded-sm bg-[#5D4037] flex-shrink-0 flex items-center justify-center shadow-lg">
-<span class="material-symbols-outlined text-[#F5F2EA] text-xl" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
-</div>
-<div class="flex flex-col gap-4">
-<div class="bg-[#FDFBF7] border border-[#D7CCC8] p-6 rounded-sm shadow-sm relative overflow-hidden">
-<div class="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]"></div>
-<h3 class="font-headline text-xl font-black text-[#8E352E] mb-4 tracking-tight">Ngô Quyền và Đại thắng Bạch Đằng (938)</h3>
-<div class="space-y-4 text-[#2D1F1A] leading-loose text-sm font-medium">
-<p>Chiến thắng Bạch Đằng năm 938 do Ngô Quyền lãnh đạo là một trong những cột mốc vĩ đại nhất trong lịch sử Việt Nam. Ông đã khôn khéo tận dụng quy luật thủy triều, cho cắm cọc vạt nhọn đầu bịt sắt xuống lòng sông Bạch Đằng để tiêu diệt quân Nam Hán.</p>
-<p>Vai trò của Ngô Quyền không chỉ dừng lại ở chiến lược quân sự tài ba mà còn ở tầm nhìn chính trị xuất chúng. Ông đã thống nhất các hào trưởng địa phương, tạo nên sức mạnh đoàn kết toàn dân tộc sau cái chết của Dương Đình Nghệ.</p>
-<div class="bg-[#F5F2EA] border border-[#D4AF37] p-5 rounded-sm mt-8 relative">
-<div class="absolute -top-3 left-4 bg-[#D4AF37] px-3 py-0.5 text-[9px] font-black text-white uppercase tracking-widest">Tài liệu tham chiếu</div>
-<div class="flex items-start gap-3 mb-2">
-<span class="material-symbols-outlined text-[#D4AF37] text-lg" data-icon="menu_book">menu_book</span>
-<p class="text-xs italic text-[#5D4037] leading-relaxed">
-                                        "Ngô Vương diệt Hoằng Tháo trên sông Bạch Đằng, đặt nền móng độc lập, xưng vương, đóng đô ở Cổ Loa..." — Theo <span class="font-bold text-[#8E352E]">Việt Nam Sử Lược – Trang 45</span> (Trần Trọng Kim).
-                                    </p>
-</div>
-</div>
-</div>
-<div class="flex flex-wrap gap-4 mt-8 pt-6 border-t border-[#D7CCC8]/30">
-<button class="flex items-center gap-2 px-5 py-2 rounded-sm bg-[#8E352E] text-white text-[11px] font-bold uppercase tracking-wider hover:bg-[#7B1113] transition-all shadow-sm">
-<span class="material-symbols-outlined text-sm" data-icon="open_in_new">open_in_new</span>
-                                Xem nguồn chi tiết
-                            </button>
-<button class="flex items-center gap-2 px-5 py-2 rounded-sm border border-[#D4AF37] text-[#D4AF37] text-[11px] font-bold uppercase tracking-wider hover:bg-[#D4AF37]/5 transition-all">
-<span class="material-symbols-outlined text-sm" data-icon="summarize">summarize</span>
-                                Tóm tắt
-                            </button>
-<div class="flex-1"></div>
-<div class="flex gap-2">
-<button class="w-8 h-8 rounded-sm hover:bg-[#F5F2EA] flex items-center justify-center text-[#5D4037]/40 hover:text-[#8E352E] transition-all">
-<span class="material-symbols-outlined text-[18px]" data-icon="content_copy">content_copy</span>
-</button>
-<button class="w-8 h-8 rounded-sm hover:bg-[#F5F2EA] flex items-center justify-center text-[#5D4037]/40 hover:text-[#8E352E] transition-all">
-<span class="material-symbols-outlined text-[18px]" data-icon="refresh">refresh</span>
-</button>
-<button class="w-8 h-8 rounded-sm hover:bg-[#F5F2EA] flex items-center justify-center text-[#5D4037]/40 hover:text-[#8E352E] transition-all">
-<span class="material-symbols-outlined text-[18px]" data-icon="thumb_up">thumb_up</span>
-</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="flex justify-start max-w-4xl w-full mx-auto opacity-70">
-<div class="flex items-start gap-4">
-<div class="w-10 h-10 rounded-sm bg-[#D7CCC8] animate-pulse flex-shrink-0"></div>
-<div class="flex flex-col gap-2">
-<div class="flex items-center gap-3 px-2">
-<div class="flex gap-1">
-<div class="w-1.5 h-1.5 rounded-full bg-[#8E352E] animate-bounce"></div>
-<div class="w-1.5 h-1.5 rounded-full bg-[#8E352E] animate-bounce [animation-delay:-.3s]"></div>
-<div class="w-1.5 h-1.5 rounded-full bg-[#8E352E] animate-bounce [animation-delay:-.5s]"></div>
-</div>
-<span class="text-[11px] font-bold text-[#5D4037]/60 italic uppercase tracking-tighter">Đang tra cứu sử liệu...</span>
-</div>
-</div>
-</div>
-</div>
-</section>
-<footer class="shrink-0 p-4 md:p-6 bg-gradient-to-t from-[#F5F2EA] via-[#F5F2EA]/95 to-transparent border-t border-[#D7CCC8]/40 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-6">
-<div class="max-w-4xl mx-auto">
-<div class="bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm shadow-xl p-1 flex items-center gap-1 focus-within:ring-1 focus-within:ring-[#D4AF37] transition-all">
-<button class="w-11 h-11 flex items-center justify-center text-[#5D4037]/50 hover:text-[#8E352E] transition-colors">
-<span class="material-symbols-outlined" data-icon="attach_file">attach_file</span>
-</button>
-<input class="flex-1 bg-transparent border-none focus:ring-0 text-[#2D1F1A] py-3 text-sm placeholder:text-[#5D4037]/40 font-medium" placeholder="Viết câu hỏi cho sử gia..." type="text"/>
-<div class="flex items-center gap-1 pr-1">
-<button class="w-10 h-10 flex items-center justify-center text-[#5D4037]/50 hover:text-[#8E352E] transition-colors">
-<span class="material-symbols-outlined" data-icon="mic">mic</span>
-</button>
-<button class="w-11 h-11 rounded-sm bg-[#8E352E] text-white flex items-center justify-center shadow-md hover:bg-[#7B1113] transition-all">
-<span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
-</button>
-</div>
-</div>
-<div class="flex justify-center gap-6 mt-4">
-<button class="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest hover:text-[#8E352E] transition-colors">Khởi nghĩa Hai Bà Trưng</button>
-<button class="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest hover:text-[#8E352E] transition-colors">Văn hóa Đông Sơn</button>
-<button class="text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest hover:text-[#8E352E] transition-colors">Triều đại nhà Lê</button>
-</div>
-</div>
-</footer>
-<button type="button" class="fixed right-8 w-14 h-14 bg-[#D4AF37] text-white rounded-sm shadow-2xl flex items-center justify-center hover:bg-[#B8860B] hover:-translate-y-1 transition-all z-40 group bottom-[calc(4.25rem+7rem)] md:bottom-28">
-<span class="material-symbols-outlined text-2xl" data-icon="auto_stories" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
-<span class="absolute right-16 bg-[#5D4037] text-white text-[10px] py-1 px-3 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold uppercase tracking-widest pointer-events-none">Thư viện sử</span>
-</button>
+<main class="flex flex-col md:ml-64 relative bg-[#F5F2EA] parchment-texture" style="height:100vh;height:100dvh;">
+
+  <div class="absolute inset-0 pattern-overlay pointer-events-none"></div>
+
+  <!-- ═══════════════════════════════════════════
+       TOP BAR
+  ════════════════════════════════════════════ -->
+  <header class="fixed top-0 right-0 left-0 md:left-64 z-40 bg-[#F5F2EA]/90 backdrop-blur-md
+                 flex justify-between items-center h-16 px-6 border-b border-[#D7CCC8]/50">
+
+    <div class="flex items-center gap-4 flex-1 max-w-2xl">
+      <div class="relative w-full group">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5D4037]/60 text-lg"
+              data-icon="search">search</span>
+        <input class="w-full bg-[#E7E0D2]/50 border-none rounded-sm pl-10 pr-4 py-2 text-sm
+                      focus:ring-1 focus:ring-[#5D4037] transition-all placeholder:text-[#5D4037]/40"
+               placeholder="Tra cứu dư địa chí, nhân vật..."
+               type="text" />
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 ml-4">
+      <button class="w-9 h-9 flex items-center justify-center text-[#5D4037] hover:bg-[#E7E0D2] transition-all rounded-sm">
+        <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+      </button>
+      <a href="{% url 'history' %}"
+         class="w-9 h-9 flex items-center justify-center text-[#5D4037] hover:bg-[#E7E0D2] transition-all rounded-sm"
+         title="Lịch sử">
+        <span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+      </a>
+      <div class="h-6 w-[1px] bg-[#D7CCC8] mx-1"></div>
+      <img alt="User Portrait"
+           class="w-8 h-8 rounded-sm object-cover border border-[#D7CCC8]"
+           src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVMqjuI9-89-zU77UEv1R845eRoEs6Xrit6-WpXDANcgVqr8qFPsxMgOa7btAXplUUrL7em3Wb3qtB-X40tchCn_rmWlVUryBu-ZJ0d9o1ttkqj5tT0hp96mhkvUa_DFB4QSBAeBuncOSD9Rw2T0KCL4F5D04qUGKCWvDwZ8KVyCgHCVbYMIZbbDTrZwYcD9WNZuNBqnggKfu301R0lQmvPTBjE-ez0lNMkye1K4za54f6tMmIDEw1JLKhcgop6V8ePPmUnqaSuCA" />
+    </div>
+
+  </header>
+
+  <!-- ═══════════════════════════════════════════
+       CHAT MESSAGES
+  ════════════════════════════════════════════ -->
+  <section id="chat-messages"
+           class="flex-1 mt-16 min-h-0 overflow-y-auto px-6 py-6 md:py-8 flex flex-col gap-8 scroll-smooth">
+    {# Messages are injected dynamically by JavaScript #}
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       INPUT FOOTER
+  ════════════════════════════════════════════ -->
+  <footer class="shrink-0 p-4 md:p-6 bg-gradient-to-t from-[#F5F2EA] via-[#F5F2EA]/95 to-transparent
+                 border-t border-[#D7CCC8]/40 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-6">
+    <div class="max-w-4xl mx-auto">
+
+      <div class="bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm shadow-xl p-1
+                  flex items-center gap-1 focus-within:ring-1 focus-within:ring-[#D4AF37] transition-all">
+        <button class="w-11 h-11 flex items-center justify-center text-[#5D4037]/50 hover:text-[#8E352E] transition-colors">
+          <span class="material-symbols-outlined" data-icon="attach_file">attach_file</span>
+        </button>
+        <input id="chat-input"
+               class="flex-1 bg-transparent border-none focus:ring-0 text-[#2D1F1A] py-3 text-sm
+                      placeholder:text-[#5D4037]/40 font-medium"
+               placeholder="Viết câu hỏi cho sử gia..."
+               type="text" />
+        <div class="flex items-center gap-1 pr-1">
+          <button class="w-10 h-10 flex items-center justify-center text-[#5D4037]/50 hover:text-[#8E352E] transition-colors">
+            <span class="material-symbols-outlined" data-icon="mic">mic</span>
+          </button>
+          <button id="send-btn"
+                  class="w-11 h-11 rounded-sm bg-[#8E352E] text-white flex items-center justify-center
+                         shadow-md hover:bg-[#7B1113] transition-all">
+            <span class="material-symbols-outlined" data-icon="send" style="font-variation-settings:'FILL' 1;">send</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-center gap-6 mt-4">
+        <button class="suggested-question text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest hover:text-[#8E352E] transition-colors">
+          Khởi nghĩa Hai Bà Trưng
+        </button>
+        <button class="suggested-question text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest hover:text-[#8E352E] transition-colors">
+          Văn hóa Đông Sơn
+        </button>
+        <button class="suggested-question text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest hover:text-[#8E352E] transition-colors">
+          Triều đại nhà Lê
+        </button>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- Floating library button -->
+  <button type="button"
+          class="fixed right-8 w-14 h-14 bg-[#D4AF37] text-white rounded-sm shadow-2xl
+                 flex items-center justify-center hover:bg-[#B8860B] hover:-translate-y-1 transition-all
+                 z-40 group bottom-[calc(4.25rem+7rem)] md:bottom-28">
+    <span class="material-symbols-outlined text-2xl" data-icon="auto_stories"
+          style="font-variation-settings:'FILL' 1;">auto_stories</span>
+    <span class="absolute right-16 bg-[#5D4037] text-white text-[10px] py-1 px-3 rounded-sm
+                 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap
+                 font-bold uppercase tracking-widest pointer-events-none">Thư viện sử</span>
+  </button>
+
 </main>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  "use strict";
+
+  // ─── DOM refs ───────────────────────────────────────────────────────────────
+  const messagesEl = document.getElementById("chat-messages");
+  const inputEl    = document.getElementById("chat-input");
+  const sendBtn    = document.getElementById("send-btn");
+
+  // ─── Utilities ──────────────────────────────────────────────────────────────
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /** Bỏ [nguon=x], bỏ **, in đậm ngày/tháng/năm, xuống dòng → <br> */
+  function formatAnswer(raw) {
+    let text = raw;
+
+    // 1. Xoá nhãn nguồn [nguon=x]
+    text = text.replace(/\s*\[nguon=\d+\]/g, "");
+
+    // 2. Xoá markdown bold **...**
+    text = text.replace(/\*\*/g, "");
+
+    // 3. Escape HTML trước khi chèn tag
+    text = escHtml(text);
+
+    // 4. In đậm cụm ngày tháng năm / thế kỷ (case-insensitive)
+    text = text.replace(
+      /\b(ngày\s+\d{1,2}\s+tháng\s+\d{1,2}\s+năm\s+\d{2,4}|tháng\s+\d{1,2}\s+năm\s+\d{2,4}|năm\s+\d{2,4}|thế\s+kỷ\s+(?:[IVXivx]+|\d+))/gi,
+      "<strong>$1</strong>"
+    );
+
+    // 5. Xuống dòng
+    text = text.replace(/\n/g, "<br>");
+
+    return text;
+  }
+
+  function scrollBottom() {
+    messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: "smooth" });
+  }
+
+  function setLoading(on) {
+    sendBtn.disabled  = on;
+    inputEl.disabled  = on;
+    sendBtn.classList.toggle("opacity-50", on);
+  }
+
+  // ─── Render helpers ─────────────────────────────────────────────────────────
+
+  function appendUserBubble(text) {
+    const now = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+    messagesEl.insertAdjacentHTML("beforeend", `
+      <div class="flex justify-end max-w-4xl w-full mx-auto">
+        <div class="flex flex-col items-end gap-2 max-w-[80%]">
+          <div class="bg-[#8E352E] text-white px-6 py-4 rounded-sm shadow-md">
+            <p class="text-sm leading-relaxed font-medium">${escHtml(text)}</p>
+          </div>
+          <span class="text-[10px] text-[#5D4037]/50 font-bold uppercase tracking-tighter px-2">
+            ${now} • Đã gửi
+          </span>
+        </div>
+      </div>`);
+    scrollBottom();
+  }
+
+  function appendTypingIndicator() {
+    const el = document.createElement("div");
+    el.id = "typing-indicator";
+    el.className = "flex justify-start max-w-4xl w-full mx-auto opacity-70";
+    el.innerHTML = `
+      <div class="flex items-start gap-4">
+        <div class="w-10 h-10 rounded-sm bg-[#D7CCC8] animate-pulse flex-shrink-0"></div>
+        <div class="flex items-center gap-3 px-2 h-10">
+          <div class="flex gap-1">
+            <div class="w-1.5 h-1.5 rounded-full bg-[#8E352E] animate-bounce"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-[#8E352E] animate-bounce [animation-delay:-.3s]"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-[#8E352E] animate-bounce [animation-delay:-.5s]"></div>
+          </div>
+          <span class="text-[11px] font-bold text-[#5D4037]/60 italic uppercase tracking-tighter">
+            Đang tra cứu sử liệu...
+          </span>
+        </div>
+      </div>`;
+    messagesEl.appendChild(el);
+    scrollBottom();
+  }
+
+  function removeTypingIndicator() {
+    const el = document.getElementById("typing-indicator");
+    if (el) el.remove();
+  }
+
+  function appendAnswerBubble(answer, sources) {
+    const sourcesHtml = sources.length
+      ? `<div class="bg-[#F5F2EA] border border-[#D4AF37] p-5 rounded-sm mt-6 relative">
+           <div class="absolute -top-3 left-4 bg-[#D4AF37] px-3 py-0.5 text-[9px] font-black text-white uppercase tracking-widest">
+             Tài liệu tham chiếu
+           </div>
+           ${sources.map(s => `
+             <div class="flex items-start gap-3 mb-2">
+               <span class="material-symbols-outlined text-[#D4AF37] text-lg">menu_book</span>
+               <p class="text-xs italic text-[#5D4037] leading-relaxed">
+                 [${s.index}] <span class="font-bold text-[#8E352E]">${escHtml(s.label)}</span>
+                 <span class="text-[#5D4037]/60"> — điểm ${s.score}</span>
+               </p>
+             </div>`).join("")}
+         </div>`
+      : "";
+
+    messagesEl.insertAdjacentHTML("beforeend", `
+      <div class="flex justify-start max-w-4xl w-full mx-auto">
+        <div class="flex items-start gap-4 max-w-[90%]">
+          <div class="w-10 h-10 rounded-sm bg-[#5D4037] flex-shrink-0 flex items-center justify-center shadow-lg">
+            <span class="material-symbols-outlined text-[#F5F2EA] text-xl"
+                  style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+          </div>
+          <div class="bg-[#FDFBF7] border border-[#D7CCC8] p-6 rounded-sm shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]"></div>
+            <div class="space-y-3 text-[#2D1F1A] leading-loose text-sm font-medium">
+              ${formatAnswer(answer)}
+            </div>
+            ${sourcesHtml}
+          </div>
+        </div>
+      </div>`);
+    scrollBottom();
+  }
+
+  function appendErrorBubble(msg) {
+    messagesEl.insertAdjacentHTML("beforeend", `
+      <div class="flex justify-start max-w-4xl w-full mx-auto">
+        <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-sm text-sm">
+          ${escHtml(msg)}
+        </div>
+      </div>`);
+    scrollBottom();
+  }
+
+  // ─── Send logic ─────────────────────────────────────────────────────────────
+
+  async function sendQuestion() {
+    const question = inputEl.value.trim();
+    if (!question) return;
+
+    inputEl.value = "";
+    appendUserBubble(question);
+    appendTypingIndicator();
+    setLoading(true);
+
+    try {
+      const resp = await fetch("{% url 'chatbot_ask' %}", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ question }),
+      });
+
+      const data = await resp.json();
+      removeTypingIndicator();
+
+      if (!resp.ok) {
+        appendErrorBubble(data.error || "Đã xảy ra lỗi, vui lòng thử lại.");
+      } else {
+        appendAnswerBubble(data.answer, data.sources || []);
+      }
+    } catch (err) {
+      removeTypingIndicator();
+      appendErrorBubble("Không thể kết nối đến máy chủ.");
+    } finally {
+      setLoading(false);
+      inputEl.focus();
+    }
+  }
+
+  // ─── Event listeners ────────────────────────────────────────────────────────
+
+  sendBtn.addEventListener("click", sendQuestion);
+
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendQuestion();
+    }
+  });
+
+  document.querySelectorAll(".suggested-question").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      inputEl.value = btn.textContent.trim();
+      inputEl.focus();
+    });
+  });
+
+})();
+</script>
+{% endblock %}
+
