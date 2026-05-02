@@ -1,13 +1,56 @@
-**/raw_data/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude
+.claude/
+
+# Database
+*.sqlite3
+*.db
+
+# Data storage
+**/ocr_data/
 **/lightrag_storage/
 qdrant_storage/
 qdrant_db/
+data/
+
+# Logs
+*.log
+logs/
+
+# Node (frontend assets nếu có)
+node_modules/
+
+# Misc
+cookies.txt
 *.json
-__pycache__/
-*.pyc
-.DS_Store
-.env
-Vical_Moi/
-venv/
-.venv/
-**/site-packages/
+!package.json
+!tsconfig.json

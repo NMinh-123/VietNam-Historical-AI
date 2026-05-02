@@ -1,10 +1,34 @@
-langchain
-langchain-community
-pypdf
-openai
+# Web server
+fastapi
+uvicorn[standard]
+python-multipart
+jinja2
+aiofiles
+
+# Auth & security
+authlib
+httpx
+itsdangerous
+bcrypt
+
+# Data validation
+pydantic
+
+# Environment
+python-dotenv
+
+# RAG & LLM
 lightrag-hku
-chromadb
+openai
+langchain-core
+
+# Vector DB
 qdrant-client
 fastembed
+
+# Embeddings
 sentence-transformers
 numpy
+
+# Data ingestion
+pypdf

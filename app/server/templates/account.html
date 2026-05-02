@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block title %}Tài khoản – Vical AI{% endblock %}
+{% block body_class %}bg-[#F5F2EA] font-body text-on-surface{% endblock %}
+
+{% block page %}
+<main class="md:ml-64 min-h-screen px-4 py-10 pb-[5rem] md:pb-10
+             bg-[#F5F2EA] relative overflow-x-hidden">
+
+  {# Background #}
+  <div class="absolute inset-0 dong-son-pattern opacity-30 pointer-events-none"></div>
+  <div class="absolute top-0 left-0 right-0 h-[3px]
+              bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent"></div>
+
+  <div class="relative max-w-2xl mx-auto space-y-6">
+
+    {# ── Header ──────────────────────────────────────────────────────────── #}
+    <div class="flex items-center gap-3 mb-2">
+      <a href="/" class="text-[#5D4037]/50 hover:text-[#8E352E] transition-colors">
+        <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+      </a>
+      <div>
+        <h1 class="text-xl font-black text-[#2D1F1A] font-headline tracking-tight">Tài khoản</h1>
+        <p class="text-[11px] text-[#5D4037]/50 uppercase tracking-widest font-bold">Vical AI</p>
+      </div>
+    </div>
+
+    {# ── Profile card ─────────────────────────────────────────────────────── #}
+    <div class="bg-gradient-to-br from-[#FDFBF7] to-[#F5F2EA]
+                border border-[#D7CCC8] rounded-sm shadow-md overflow-hidden">
+
+      {# Cover strip #}
+      <div class="h-24 dong-son-pattern bg-[#8E352E]/10 relative">
+        <div class="absolute inset-0 bg-gradient-to-br from-[#8E352E]/20 to-[#D4AF37]/15"></div>
+      </div>
+
+      <div class="px-6 pb-6">
+        {# Avatar #}
+        <div class="flex items-end gap-4 -mt-10 mb-4">
+          <div class="relative">
+            {% if current_user.avatar_url %}
+              <img src="{{ current_user.avatar_url }}" alt="avatar"
+                   class="w-20 h-20 rounded-full object-cover border-4 border-[#F5F2EA] shadow-lg" />
+            {% else %}
+              <div class="w-20 h-20 rounded-full border-4 border-[#F5F2EA] shadow-lg
+                          bg-[#8E352E] flex items-center justify-center">
+                <span class="text-2xl font-black text-white">
+                  {{ (current_user.display_name or current_user.email)[0] | upper }}
+                </span>
+              </div>
+            {% endif %}
+          </div>
+          <div class="mb-1">
+            <p class="text-xs font-bold text-[#5D4037]/50 uppercase tracking-widest">
+              {% if providers %}
+                {% for p in providers %}
+                  <span class="inline-flex items-center gap-1 mr-2">
+                    {% if p == 'google' %}
+                      <svg class="w-3 h-3" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                      Google
+                    {% elif p == 'facebook' %}
+                      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                      Facebook
+                    {% else %}
+                      {{ p }}
+                    {% endif %}
+                  </span>
+                {% endfor %}
+              {% else %}
+                Email
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        {# Name & email #}
+        <h2 class="text-xl font-black text-[#2D1F1A]">
+          {{ current_user.display_name or '(Chưa đặt tên)' }}
+        </h2>
+        <p class="text-sm text-[#5D4037]/60 mt-0.5">{{ current_user.email }}</p>
+
+        {# Stats #}
+        <div class="flex gap-6 mt-4 pt-4 border-t border-[#D7CCC8]/60">
+          <div class="text-center">
+            <p class="text-2xl font-black text-[#8E352E]">{{ stats.conversations }}</p>
+            <p class="text-[10px] font-bold text-[#5D4037]/50 uppercase tracking-wider mt-0.5">Cuộc hội thoại</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-black text-[#8E352E]">{{ stats.messages }}</p>
+            <p class="text-[10px] font-bold text-[#5D4037]/50 uppercase tracking-wider mt-0.5">Câu hỏi đã hỏi</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-black text-[#D4AF37]">∞</p>
+            <p class="text-[10px] font-bold text-[#5D4037]/50 uppercase tracking-wider mt-0.5">Lịch sử</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Edit profile ─────────────────────────────────────────────────────── #}
+    <div class="bg-gradient-to-br from-[#FDFBF7] to-[#F5F2EA]
+                border border-[#D7CCC8] rounded-sm shadow-md p-6">
+      <h3 class="text-[11px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-4">
+        Chỉnh sửa hồ sơ
+      </h3>
+
+      <form id="profile-form" onsubmit="saveProfile(event)" class="space-y-4">
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
+            Tên hiển thị
+          </label>
+          <input type="text" name="display_name"
+                 value="{{ current_user.display_name or '' }}"
+                 placeholder="Nhập tên của bạn"
+                 required
+                 class="w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
+                        px-3.5 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35
+                        focus:outline-none focus:border-[#8E352E] focus:ring-2 focus:ring-[#8E352E]/10
+                        transition-all" />
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
+            Email
+          </label>
+          <input type="email" value="{{ current_user.email }}" disabled
+                 class="w-full bg-[#EDE8E0] border border-[#D7CCC8] rounded-sm
+                        px-3.5 py-2.5 text-sm text-[#5D4037]/60 cursor-not-allowed" />
+          <p class="text-[10px] text-[#5D4037]/40 mt-1">Email không thể thay đổi.</p>
+        </div>
+
+        <div id="profile-msg" class="hidden px-4 py-2.5 rounded-sm text-xs font-medium"></div>
+
+        <button type="submit"
+                class="w-full py-2.5 rounded-sm bg-[#8E352E] text-white
+                       font-black text-[12px] uppercase tracking-widest shadow-sm
+                       hover:bg-[#7B1113] transition-colors">
+          <span id="save-btn-label" class="flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-lg" style="font-variation-settings:'FILL' 1;">save</span>
+            Lưu thay đổi
+          </span>
+        </button>
+      </form>
+    </div>
+
+    {# ── Quick links ──────────────────────────────────────────────────────── #}
+    <div class="bg-gradient-to-br from-[#FDFBF7] to-[#F5F2EA]
+                border border-[#D7CCC8] rounded-sm shadow-md overflow-hidden">
+      <h3 class="text-[11px] font-black uppercase tracking-widest text-[#5D4037]/60 px-6 py-4 border-b border-[#D7CCC8]/60">
+        Hoạt động
+      </h3>
+      <div class="divide-y divide-[#D7CCC8]/40">
+        <a href="/history"
+           class="flex items-center gap-3 px-6 py-3.5 hover:bg-[#8E352E]/5 transition-colors group">
+          <span class="material-symbols-outlined text-[#8E352E]/70 text-[22px]">history_edu</span>
+          <div class="flex-1">
+            <p class="text-sm font-bold text-[#2D1F1A]">Lịch sử hội thoại</p>
+            <p class="text-[11px] text-[#5D4037]/50">Xem lại các cuộc trò chuyện trước</p>
+          </div>
+          <span class="material-symbols-outlined text-[#5D4037]/30 group-hover:text-[#8E352E]/50 transition-colors">chevron_right</span>
+        </a>
+        <a href="/ask"
+           class="flex items-center gap-3 px-6 py-3.5 hover:bg-[#8E352E]/5 transition-colors group">
+          <span class="material-symbols-outlined text-[#8E352E]/70 text-[22px]">quiz</span>
+          <div class="flex-1">
+            <p class="text-sm font-bold text-[#2D1F1A]">Hỏi đáp lịch sử</p>
+            <p class="text-[11px] text-[#5D4037]/50">Đặt câu hỏi mới</p>
+          </div>
+          <span class="material-symbols-outlined text-[#5D4037]/30 group-hover:text-[#8E352E]/50 transition-colors">chevron_right</span>
+        </a>
+        <a href="/persona"
+           class="flex items-center gap-3 px-6 py-3.5 hover:bg-[#8E352E]/5 transition-colors group">
+          <span class="material-symbols-outlined text-[#8E352E]/70 text-[22px]">forum</span>
+          <div class="flex-1">
+            <p class="text-sm font-bold text-[#2D1F1A]">Trò chuyện với tiền nhân</p>
+            <p class="text-[11px] text-[#5D4037]/50">Hội thoại cùng các nhân vật lịch sử</p>
+          </div>
+          <span class="material-symbols-outlined text-[#5D4037]/30 group-hover:text-[#8E352E]/50 transition-colors">chevron_right</span>
+        </a>
+      </div>
+    </div>
+
+    {# ── Danger zone ──────────────────────────────────────────────────────── #}
+    <div class="bg-gradient-to-br from-[#FDFBF7] to-[#F5F2EA]
+                border border-[#D7CCC8] rounded-sm shadow-md overflow-hidden">
+      <h3 class="text-[11px] font-black uppercase tracking-widest text-[#5D4037]/60 px-6 py-4 border-b border-[#D7CCC8]/60">
+        Phiên đăng nhập
+      </h3>
+      <div class="px-6 py-4">
+        <a href="/auth/logout"
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm
+                  border border-[#8E352E]/30 text-[#8E352E] text-sm font-bold
+                  hover:bg-[#8E352E]/8 transition-colors">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+          Đăng xuất
+        </a>
+        <p class="text-[11px] text-[#5D4037]/40 mt-2">Đăng xuất khỏi tất cả thiết bị hiện tại.</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+window.saveProfile = async function(e) {
+  e.preventDefault();
+  const form    = e.target;
+  const msgEl   = document.getElementById('profile-msg');
+  const btnLabel = document.getElementById('save-btn-label');
+
+  msgEl.className = 'hidden px-4 py-2.5 rounded-sm text-xs font-medium';
+  btnLabel.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span> Đang lưu...';
+  form.querySelector('button[type="submit"]').disabled = true;
+
+  const body = new URLSearchParams();
+  body.set('display_name', form.display_name.value.trim());
+
+  try {
+    const res  = await fetch('/auth/account/update', { method: 'POST', body, credentials: 'same-origin' });
+    const data = await res.json();
+
+    if (res.ok) {
+      msgEl.textContent = 'Đã lưu thay đổi.';
+      msgEl.className = 'px-4 py-2.5 rounded-sm text-xs font-medium bg-green-50 border border-green-200 text-green-700';
+    } else {
+      msgEl.textContent = data.error || 'Đã có lỗi xảy ra.';
+      msgEl.className = 'px-4 py-2.5 rounded-sm text-xs font-medium bg-red-50 border border-red-200 text-red-700';
+    }
+  } catch {
+    msgEl.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+    msgEl.className = 'px-4 py-2.5 rounded-sm text-xs font-medium bg-red-50 border border-red-200 text-red-700';
+  }
+
+  form.querySelector('button[type="submit"]').disabled = false;
+  btnLabel.innerHTML = '<span class="material-symbols-outlined text-lg" style="font-variation-settings:\'FILL\' 1;">save</span> Lưu thay đổi';
+};
+</script>
+{% endblock %}

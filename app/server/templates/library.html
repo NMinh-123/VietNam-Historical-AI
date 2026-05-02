@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+
+{% block title %}Thư viện sử – Vical AI{% endblock %}
+
+{% block body_class %}bg-[#F5F2EA] font-body text-on-surface{% endblock %}
+
+{% block extra_head %}
+<style>
+  .parchment-texture {
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(212,175,55,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(141,53,46,0.04) 0%, transparent 60%);
+  }
+
+  /* Book card spine */
+  .book-spine { transition: width 0.25s ease; }
+  .book-card:hover .book-spine { width: 6px; }
+
+  /* Detail panel slide-in */
+  #detail-panel {
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #detail-panel.open {
+    transform: translateX(0);
+  }
+
+  /* Overlay */
+  #panel-overlay {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  #panel-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Scrollbar hide for filter row */
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+{% endblock %}
+
+{% block page %}
+<main class="md:ml-64 pt-16 min-h-screen bg-[#F5F2EA] parchment-texture">
+
+  <!-- ═══════════════════════════════════════════
+       TOP BAR
+  ════════════════════════════════════════════ -->
+  <header class="fixed top-0 right-0 left-0 md:left-64 z-40 bg-[#F5F2EA]/90 backdrop-blur-md
+                 flex justify-between items-center h-16 px-6 border-b border-[#D7CCC8]/50">
+
+    <!-- Left: back + title -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <a href="/ask"
+         class="w-9 h-9 flex items-center justify-center text-[#5D4037] hover:bg-[#E7E0D2] transition-all rounded-sm"
+         title="Quay lại hỏi đáp">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+      <div>
+        <h1 class="text-sm font-black text-[#2D1F1A] font-serif leading-tight">Thư viện sử</h1>
+        <p class="text-[10px] text-[#5D4037]/55 uppercase tracking-widest font-bold leading-none mt-0.5">
+          {{ books|length }} tập • đã lập chỉ mục
+        </p>
+      </div>
+    </div>
+
+    <!-- Center: search -->
+    <div class="flex items-center gap-4 flex-1 max-w-xs mx-4">
+      <div class="relative w-full">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5D4037]/60 text-lg">search</span>
+        <input id="lib-search"
+               class="w-full bg-[#E7E0D2]/50 border-none rounded-sm pl-10 pr-4 py-2 text-sm
+                      focus:ring-1 focus:ring-[#5D4037] transition-all placeholder:text-[#5D4037]/40"
+               placeholder="Tìm tập sách..."
+               type="text" />
+      </div>
+    </div>
+
+    <!-- Right: actions + avatar -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <button class="w-9 h-9 flex items-center justify-center text-[#5D4037] hover:bg-[#E7E0D2] transition-all rounded-sm">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <div class="h-6 w-[1px] bg-[#D7CCC8] mx-1"></div>
+      <img alt="User Portrait"
+           class="w-8 h-8 rounded-sm object-cover border border-[#D7CCC8]"
+           src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVMqjuI9-89-zU77UEv1R845eRoEs6Xrit6-WpXDANcgVqr8qFPsxMgOa7btAXplUUrL7em3Wb3qtB-X40tchCn_rmWlVUryBu-ZJ0d9o1ttkqj5tT0hp96mhkvUa_DFB4QSBAeBuncOSD9Rw2T0KCL4F5D04qUGKCWvDwZ8KVyCgHCVbYMIZbbDTrZwYcD9WNZuNBqnggKfu301R0lQmvPTBjE-ez0lNMkye1K4za54f6tMmIDEw1JLKhcgop6V8ePPmUnqaSuCA" />
+    </div>
+
+  </header>
+
+  <!-- ═══════════════════════════════════════════
+       HERO BANNER
+  ════════════════════════════════════════════ -->
+  <section class="relative overflow-hidden bg-[#3E2723] px-6 md:px-10 py-10 md:py-14">
+    <div class="absolute inset-0 dong-son-pattern opacity-10 pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-[2px]
+                bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent"></div>
+
+    <div class="relative max-w-5xl mx-auto flex flex-col md:flex-row items-start md:items-center gap-8">
+      <div class="flex-1">
+        <span class="inline-block px-3 py-1 mb-4 rounded-sm text-[10px] font-black uppercase tracking-widest
+                     bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37]">
+          Kho lưu trữ số hóa
+        </span>
+        <h2 class="font-headline text-2xl md:text-4xl font-black text-[#F5F2EA] italic leading-snug mb-3">
+          Bộ Lịch sử Việt Nam<br>
+          <span class="text-[#D4AF37]">Toàn tập 15 tập + Cổ sử</span>
+        </h2>
+        <p class="text-[#D7CCC8]/75 text-sm leading-relaxed max-w-lg">
+          Tổng hợp tri thức từ bộ sách <span class="text-[#D4AF37] font-bold">Lịch sử Việt Nam</span>
+          do Viện Sử học biên soạn cùng hai đại thư tịch cổ.
+          Tất cả đã được số hóa và lập chỉ mục vào hệ thống AI.
+        </p>
+      </div>
+      <div class="flex gap-3 flex-shrink-0">
+        <div class="bg-[#F5F2EA]/10 border border-[#D4AF37]/25 rounded-sm px-5 py-4 text-center">
+          <p class="text-3xl font-black text-[#D4AF37]">{{ books|length }}</p>
+          <p class="text-[10px] text-[#D7CCC8]/60 uppercase tracking-widest font-bold mt-1">Tập sách</p>
+        </div>
+        <div class="bg-[#F5F2EA]/10 border border-[#D4AF37]/25 rounded-sm px-5 py-4 text-center">
+          <p class="text-3xl font-black text-[#D4AF37]">2000+</p>
+          <p class="text-[10px] text-[#D7CCC8]/60 uppercase tracking-widest font-bold mt-1">Năm lịch sử</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       FILTER TABS
+  ════════════════════════════════════════════ -->
+  <div class="sticky top-16 z-30 bg-[#F5F2EA]/95 backdrop-blur-sm border-b border-[#D7CCC8]/40">
+    <div class="max-w-5xl mx-auto px-4 md:px-6 py-2.5 flex items-center gap-2 overflow-x-auto scrollbar-none">
+      <button data-filter="all"
+              class="filter-btn flex-shrink-0 px-4 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-widest
+                     bg-[#8E352E] text-white transition-all">
+        Tất cả
+      </button>
+      <button data-filter="series"
+              class="filter-btn flex-shrink-0 px-4 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-widest
+                     border border-[#D7CCC8] text-[#5D4037] hover:border-[#8E352E] hover:text-[#8E352E] transition-all">
+        Bộ Lịch sử VN
+      </button>
+      <button data-filter="classic"
+              class="filter-btn flex-shrink-0 px-4 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-widest
+                     border border-[#D7CCC8] text-[#5D4037] hover:border-[#8E352E] hover:text-[#8E352E] transition-all">
+        Cổ sử
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       BOOK GRID
+  ════════════════════════════════════════════ -->
+  <section class="flex-1 px-4 md:px-6 py-6 pb-[5.5rem] md:pb-10">
+    <div id="book-grid"
+         class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+      {% for book in books %}
+      <article class="book-card group relative bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm shadow-sm
+                       hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden
+                       flex flex-col cursor-pointer"
+               data-category="{{ book.category }}"
+               data-title="{{ book.title|lower }}"
+               data-book-id="{{ loop.index0 }}"
+               tabindex="0"
+               role="button"
+               aria-label="Xem chi tiết {{ book.title }}">
+
+        <!-- Spine -->
+        <div class="book-spine absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b {{ book.spine_color }}"></div>
+
+        <div class="pl-4 pr-4 pt-4 pb-4 flex flex-col flex-1">
+
+          <!-- Badge + size -->
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm {{ book.badge_class }}">
+              {{ book.badge }}
+            </span>
+            <span class="text-[10px] text-[#5D4037]/45 flex items-center gap-1">
+              <span class="material-symbols-outlined text-[13px]">description</span>
+              {{ book.size }}
+            </span>
+          </div>
+
+          <!-- Volume -->
+          {% if book.volume %}
+          <p class="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest mb-0.5">
+            Tập {{ book.volume }}
+          </p>
+          {% endif %}
+
+          <!-- Title -->
+          <h3 class="font-serif text-[#2D1F1A] font-bold text-[14px] leading-snug mb-1 line-clamp-2">
+            {{ book.title }}
+          </h3>
+
+          <!-- Period -->
+          <p class="text-[11px] text-[#8E352E] font-bold mb-2">{{ book.period }}</p>
+
+          <!-- Author -->
+          <div class="flex items-center gap-1 mb-3">
+            <span class="material-symbols-outlined text-[#5D4037]/35 text-[13px]">person</span>
+            <p class="text-[11px] text-[#5D4037]/55 italic truncate">{{ book.author }}</p>
+          </div>
+
+          <div class="flex-1"></div>
+
+          <!-- Footer -->
+          <div class="flex items-center justify-between pt-3 border-t border-[#E7E0D2]">
+            <span class="flex items-center gap-1 text-[10px] text-[#5D4037]/45 font-bold">
+              <span class="material-symbols-outlined text-[13px]"
+                    style="font-variation-settings:'FILL' 1;">check_circle</span>
+              Đã lập chỉ mục
+            </span>
+            <span class="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest
+                         text-[#8E352E] group-hover:text-[#D4AF37] transition-colors">
+              Xem chi tiết
+              <span class="material-symbols-outlined text-[13px]">chevron_right</span>
+            </span>
+          </div>
+
+        </div>
+      </article>
+      {% endfor %}
+
+    </div>
+
+    <!-- No results -->
+    <div id="no-results" class="hidden max-w-5xl mx-auto flex-col items-center justify-center py-20 text-center">
+      <span class="material-symbols-outlined text-6xl text-[#D7CCC8] mb-3">search_off</span>
+      <p class="text-[#5D4037]/55 font-bold text-sm">Không tìm thấy kết quả phù hợp.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL PANEL OVERLAY
+════════════════════════════════════════════ -->
+<div id="panel-overlay"
+     class="fixed inset-0 bg-black/40 z-50 backdrop-blur-[2px]"
+     aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════
+     DETAIL PANEL (slide in from right)
+════════════════════════════════════════════ -->
+<aside id="detail-panel"
+       class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-[#FDFBF7]
+              shadow-2xl border-l border-[#D7CCC8] flex flex-col overflow-hidden"
+       aria-label="Chi tiết tập sách">
+
+  <!-- Panel header -->
+  <div class="flex-shrink-0 bg-[#3E2723] px-5 py-4 relative overflow-hidden">
+    <div class="absolute inset-0 dong-son-pattern opacity-10 pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-[2px]
+                bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent"></div>
+    <div class="relative flex items-start justify-between gap-3">
+      <div class="flex-1 min-w-0">
+        <span id="panel-badge"
+              class="inline-block text-[9px] font-black uppercase tracking-widest px-2 py-0.5
+                     rounded-sm mb-2 bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37]">
+          —
+        </span>
+        <p id="panel-volume" class="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest mb-1"></p>
+        <h2 id="panel-title"
+            class="font-serif text-[#F5F2EA] font-bold text-base leading-snug"></h2>
+      </div>
+      <button id="panel-close"
+              class="flex-shrink-0 w-8 h-8 flex items-center justify-center
+                     text-[#D7CCC8]/70 hover:text-white hover:bg-white/10
+                     rounded-sm transition-colors mt-1"
+              aria-label="Đóng">
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel body -->
+  <div class="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+
+    <!-- Period -->
+    <div class="flex items-center gap-3 bg-[#F5F2EA] border border-[#E7E0D2] rounded-sm px-4 py-3">
+      <span class="material-symbols-outlined text-[#8E352E] text-xl flex-shrink-0"
+            style="font-variation-settings:'FILL' 1;">schedule</span>
+      <div>
+        <p class="text-[9px] font-black uppercase tracking-widest text-[#5D4037]/50 mb-0.5">Giai đoạn lịch sử</p>
+        <p id="panel-period" class="text-sm font-bold text-[#2D1F1A]"></p>
+      </div>
+    </div>
+
+    <!-- Author -->
+    <div class="flex items-center gap-3 bg-[#F5F2EA] border border-[#E7E0D2] rounded-sm px-4 py-3">
+      <span class="material-symbols-outlined text-[#5D4037]/50 text-xl flex-shrink-0">person</span>
+      <div>
+        <p class="text-[9px] font-black uppercase tracking-widest text-[#5D4037]/50 mb-0.5">Tác giả & năm xuất bản</p>
+        <p id="panel-author" class="text-sm font-medium text-[#2D1F1A] italic"></p>
+      </div>
+    </div>
+
+    <!-- File size + indexed -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-[#F5F2EA] border border-[#E7E0D2] rounded-sm px-4 py-3">
+        <p class="text-[9px] font-black uppercase tracking-widest text-[#5D4037]/50 mb-1">Dung lượng</p>
+        <p id="panel-size" class="text-base font-black text-[#2D1F1A]"></p>
+      </div>
+      <div class="bg-[#F5F2EA] border border-[#E7E0D2] rounded-sm px-4 py-3">
+        <p class="text-[9px] font-black uppercase tracking-widest text-[#5D4037]/50 mb-1">Trạng thái</p>
+        <p class="text-[11px] font-black text-[#4CAF50] flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm"
+                style="font-variation-settings:'FILL' 1;">check_circle</span>
+          Đã lập chỉ mục
+        </p>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <p class="text-[9px] font-black uppercase tracking-widest text-[#5D4037]/50 mb-2">
+        Nội dung chính
+      </p>
+      <p id="panel-desc"
+         class="text-sm text-[#2D1F1A]/80 leading-relaxed"></p>
+    </div>
+
+    <!-- Gold divider -->
+    <div class="h-px bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent"></div>
+
+    <!-- Topics -->
+    <div>
+      <p class="text-[9px] font-black uppercase tracking-widest text-[#5D4037]/50 mb-2.5">
+        Chủ đề nổi bật
+      </p>
+      <div id="panel-topics" class="flex flex-wrap gap-2"></div>
+    </div>
+
+  </div>
+
+  <!-- Panel footer: CTA -->
+  <div class="flex-shrink-0 px-5 py-4 border-t border-[#E7E0D2] bg-[#FDFBF7]">
+    <a id="panel-ask-btn"
+       href="#"
+       class="flex items-center justify-center gap-2 w-full py-3 rounded-sm
+              bg-[#8E352E] text-white font-black text-[12px] uppercase tracking-widest
+              hover:bg-[#7B1113] transition-colors shadow-md">
+      <span class="material-symbols-outlined text-lg"
+            style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+      Hỏi AI về tập này
+    </a>
+  </div>
+
+</aside>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  "use strict";
+
+  // ─── Book data từ Django (safe JSON, escaped by Django) ─────────────────────
+  const BOOKS = {{ books_json | safe }};
+
+  // ─── DOM refs ───────────────────────────────────────────────────────────────
+  const overlay      = document.getElementById("panel-overlay");
+  const panel        = document.getElementById("detail-panel");
+  const closeBtn     = document.getElementById("panel-close");
+  const searchEl     = document.getElementById("lib-search");
+  const grid         = document.getElementById("book-grid");
+  const noResults    = document.getElementById("no-results");
+  const filterBtns   = document.querySelectorAll(".filter-btn");
+
+  // Panel field refs
+  const pBadge  = document.getElementById("panel-badge");
+  const pVol    = document.getElementById("panel-volume");
+  const pTitle  = document.getElementById("panel-title");
+  const pPeriod = document.getElementById("panel-period");
+  const pAuthor = document.getElementById("panel-author");
+  const pSize   = document.getElementById("panel-size");
+  const pDesc   = document.getElementById("panel-desc");
+  const pTopics = document.getElementById("panel-topics");
+  const pAsk    = document.getElementById("panel-ask-btn");
+
+  // ─── Panel open/close ───────────────────────────────────────────────────────
+  function openPanel(bookId) {
+    const b = BOOKS[bookId];
+    if (!b) return;
+
+    pBadge.textContent   = b.badge;
+    pVol.textContent     = b.volume ? "Tập " + b.volume : "";
+    pVol.style.display   = b.volume ? "block" : "none";
+    pTitle.textContent   = b.title;
+    pPeriod.textContent  = b.period;
+    pAuthor.textContent  = b.author;
+    pSize.textContent    = b.size;
+    pDesc.textContent    = b.desc;
+    pAsk.href            = "/ask/?q=" + encodeURIComponent(b.ask_query);
+
+    // Topics chips
+    pTopics.innerHTML = (b.topics || []).map(t =>
+      `<span class="px-2.5 py-1 rounded-sm text-[10px] font-black uppercase tracking-widest
+                    bg-[#8E352E]/10 border border-[#8E352E]/20 text-[#8E352E]">${t}</span>`
+    ).join("");
+
+    panel.classList.add("open");
+    overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closePanel() {
+    panel.classList.remove("open");
+    overlay.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  overlay.addEventListener("click", closePanel);
+  closeBtn.addEventListener("click", closePanel);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closePanel(); });
+
+  // ─── Book card click ────────────────────────────────────────────────────────
+  grid.querySelectorAll("article[data-book-id]").forEach(card => {
+    card.addEventListener("click", () => openPanel(+card.dataset.bookId));
+    card.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPanel(+card.dataset.bookId); }
+    });
+  });
+
+  // ─── Filter ─────────────────────────────────────────────────────────────────
+  let currentFilter = "all";
+  let currentQuery  = "";
+
+  function applyFilters() {
+    let visible = 0;
+    grid.querySelectorAll("article").forEach(card => {
+      const matchF = currentFilter === "all" || card.dataset.category === currentFilter;
+      const matchQ = !currentQuery || card.dataset.title.includes(currentQuery);
+      card.classList.toggle("hidden", !(matchF && matchQ));
+      if (matchF && matchQ) visible++;
+    });
+    noResults.classList.toggle("hidden", visible > 0);
+    noResults.classList.toggle("flex", visible === 0);
+    grid.classList.toggle("hidden", visible === 0);
+  }
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      filterBtns.forEach(b => {
+        b.classList.remove("bg-[#8E352E]", "text-white");
+        b.classList.add("border", "border-[#D7CCC8]", "text-[#5D4037]");
+      });
+      btn.classList.add("bg-[#8E352E]", "text-white");
+      btn.classList.remove("border", "border-[#D7CCC8]", "text-[#5D4037]");
+      currentFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  // ─── Search ─────────────────────────────────────────────────────────────────
+  if (searchEl) {
+    searchEl.addEventListener("input", () => {
+      currentQuery = searchEl.value.trim().toLowerCase();
+      applyFilters();
+    });
+  }
+
+})();
+</script>
+{% endblock %}

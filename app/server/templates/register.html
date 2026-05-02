@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+{% block title %}Tạo tài khoản – Vical AI{% endblock %}
+{% block body_class %}bg-[#F5F2EA] font-body text-on-surface{% endblock %}
+
+{% block extra_head %}
+<style>
+  .auth-card {
+    background: linear-gradient(160deg, #FDFBF7 0%, #F5F2EA 100%);
+  }
+  .oauth-btn {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .oauth-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  }
+  .oauth-btn:active { transform: translateY(0); }
+
+  .input-field {
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: #8E352E;
+    box-shadow: 0 0 0 3px rgba(142,53,46,0.12);
+  }
+
+  .divider-line {
+    background: linear-gradient(to right, transparent, #D7CCC8, transparent);
+  }
+
+  .submit-btn {
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .submit-btn:hover {
+    background: #7B1113;
+    box-shadow: 0 4px 16px rgba(142,53,46,0.35);
+    transform: translateY(-1px);
+  }
+  .submit-btn:active { transform: translateY(0); }
+
+  .tab-active {
+    color: #8E352E;
+    border-bottom: 2px solid #8E352E;
+  }
+  .tab-inactive {
+    color: #5D4037;
+    opacity: 0.55;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-inactive:hover { opacity: 0.85; }
+
+  /* Password strength bar */
+  #strength-bar div { transition: width 0.3s ease, background 0.3s ease; }
+
+  .strength-weak   { background: #E53935; }
+  .strength-fair   { background: #FB8C00; }
+  .strength-good   { background: #FDD835; }
+  .strength-strong { background: #43A047; }
+</style>
+{% endblock %}
+
+{% block page %}
+<main class="md:ml-64 min-h-screen flex items-center justify-center px-4 py-16
+             bg-[#F5F2EA] relative overflow-hidden">
+
+  {# Background decorative pattern #}
+  <div class="absolute inset-0 dong-son-pattern opacity-40 pointer-events-none"></div>
+  <div class="absolute top-0 left-0 right-0 h-[3px]
+              bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent"></div>
+
+  {# Floating ornamental circles #}
+  <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full
+              bg-[#8E352E]/5 pointer-events-none"></div>
+  <div class="absolute -bottom-24 -left-24 w-80 h-80 rounded-full
+              bg-[#D4AF37]/6 pointer-events-none"></div>
+
+  <div class="relative w-full max-w-md">
+
+    {# ── Logo / Brand ────────────────────────────────────────────────────── #}
+    <div class="text-center mb-8">
+      <a href="/" class="inline-block hover:opacity-80 transition-opacity">
+        <h1 class="text-3xl font-black text-[#2D1F1A] italic font-headline tracking-tight">Vical AI</h1>
+        <p class="text-[10px] text-[#5D4037]/55 uppercase tracking-[0.25em] font-bold mt-0.5">
+          Trợ lý Lịch sử Việt Nam
+        </p>
+      </a>
+      <div class="mt-3 h-[2px] w-16 mx-auto bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent"></div>
+    </div>
+
+    {# ── Card ────────────────────────────────────────────────────────────── #}
+    <div class="auth-card border border-[#D7CCC8] rounded-sm shadow-xl overflow-hidden">
+
+      {# Tab switcher #}
+      <div class="flex border-b border-[#D7CCC8]">
+        <button id="tab-register"
+                class="flex-1 py-3.5 text-[11px] font-black uppercase tracking-widest tab-active transition-all"
+                onclick="switchTab('register')">
+          Tạo tài khoản
+        </button>
+        <button id="tab-login"
+                class="flex-1 py-3.5 text-[11px] font-black uppercase tracking-widest tab-inactive transition-all"
+                onclick="switchTab('login')">
+          Đăng nhập
+        </button>
+      </div>
+
+      <div class="px-7 py-7">
+
+        {# ── OAuth buttons ───────────────────────────────────────────────── #}
+        <div class="space-y-3 mb-6">
+
+          {# Google #}
+          <button onclick="oauthLogin('google')"
+                  class="oauth-btn w-full flex items-center gap-3 px-4 py-3 rounded-sm
+                         bg-white border border-[#D7CCC8] hover:border-[#5D4037]/40
+                         shadow-sm group">
+            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span class="flex-1 text-left text-[13px] font-bold text-[#2D1F1A]">
+              <span id="google-btn-text">Tiếp tục với Google</span>
+            </span>
+            <span class="material-symbols-outlined text-[#5D4037]/30 text-base
+                         group-hover:text-[#5D4037]/60 transition-colors">arrow_forward</span>
+          </button>
+
+          {# Facebook #}
+          <button onclick="oauthLogin('facebook')"
+                  class="oauth-btn w-full flex items-center gap-3 px-4 py-3 rounded-sm
+                         bg-[#1877F2] border border-[#1877F2] hover:bg-[#166FE5]
+                         shadow-sm group">
+            <svg class="w-5 h-5 flex-shrink-0 flex-shrink-0" viewBox="0 0 24 24" fill="white">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            <span class="flex-1 text-left text-[13px] font-bold text-white">
+              <span id="facebook-btn-text">Tiếp tục với Facebook</span>
+            </span>
+            <span class="material-symbols-outlined text-white/50 text-base
+                         group-hover:text-white/80 transition-colors">arrow_forward</span>
+          </button>
+        </div>
+
+        {# Divider #}
+        <div class="flex items-center gap-3 mb-6">
+          <div class="flex-1 h-px divider-line"></div>
+          <span class="text-[10px] font-black uppercase tracking-widest text-[#5D4037]/45">
+            hoặc
+          </span>
+          <div class="flex-1 h-px divider-line"></div>
+        </div>
+
+        {# ── Register form ───────────────────────────────────────────────── #}
+        <form id="form-register" onsubmit="handleSubmit(event, 'register')" class="space-y-4">
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
+                Họ
+              </label>
+              <input type="text" name="first_name" placeholder="Nguyễn"
+                     class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
+                            px-3.5 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
+                Tên
+              </label>
+              <input type="text" name="last_name" placeholder="Văn A"
+                     class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
+                            px-3.5 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
+              Email
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                           text-[#5D4037]/35 text-[18px]">mail</span>
+              <input type="email" name="email" placeholder="ten@email.com" required
+                     class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
+                            pl-9 pr-3.5 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
+              Mật khẩu
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                           text-[#5D4037]/35 text-[18px]">lock</span>
+              <input type="password" name="password" id="reg-password" placeholder="Tối thiểu 8 ký tự"
+                     required minlength="8"
+                     oninput="checkStrength(this.value)"
+                     class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
+                            pl-9 pr-10 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
+              <button type="button" onclick="togglePwd('reg-password', this)"
+                      class="absolute right-3 top-1/2 -translate-y-1/2
+                             text-[#5D4037]/35 hover:text-[#5D4037] transition-colors">
+                <span class="material-symbols-outlined text-[18px]">visibility</span>
+              </button>
+            </div>
+            {# Strength bar #}
+            <div id="strength-bar" class="mt-1.5 h-1 rounded-full bg-[#D7CCC8]/40 overflow-hidden hidden">
+              <div id="strength-fill" class="h-full rounded-full w-0"></div>
+            </div>
+            <p id="strength-label" class="text-[10px] font-bold mt-1 hidden"></p>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
+              Xác nhận mật khẩu
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                           text-[#5D4037]/35 text-[18px]">lock_reset</span>
+              <input type="password" name="confirm_password" id="reg-confirm" placeholder="Nhập lại mật khẩu"
+                     required
+                     class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
+                            pl-9 pr-10 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
+              <button type="button" onclick="togglePwd('reg-confirm', this)"
+                      class="absolute right-3 top-1/2 -translate-y-1/2
+                             text-[#5D4037]/35 hover:text-[#5D4037] transition-colors">
+                <span class="material-symbols-outlined text-[18px]">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          {# Terms checkbox #}
+          <label class="flex items-start gap-2.5 cursor-pointer group">
+            <input type="checkbox" name="terms" required
+                   class="mt-0.5 w-4 h-4 rounded-sm border-[#D7CCC8] accent-[#8E352E] cursor-pointer" />
+            <span class="text-[11px] text-[#5D4037]/70 leading-relaxed">
+              Tôi đồng ý với
+              <a href="#" class="text-[#8E352E] font-bold hover:underline">Điều khoản dịch vụ</a>
+              và
+              <a href="#" class="text-[#8E352E] font-bold hover:underline">Chính sách bảo mật</a>
+            </span>
+          </label>
+
+          {# Error message #}
+          <div id="reg-error"
+               class="hidden px-4 py-2.5 bg-red-50 border border-red-200 rounded-sm
+                      text-xs text-red-700 font-medium"></div>
+
+          <button type="submit"
+                  class="submit-btn w-full py-3 rounded-sm bg-[#8E352E] text-white
+                         font-black text-[12px] uppercase tracking-widest shadow-md">
+            <span id="reg-btn-label" class="flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-lg"
+                    style="font-variation-settings:'FILL' 1;">person_add</span>
+              Tạo tài khoản
+            </span>
+          </button>
+        </form>
+
+        {# ── Login form (hidden initially) ───────────────────────────────── #}
+        <form id="form-login" onsubmit="handleSubmit(event, 'login')" class="space-y-4 hidden">
+
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
+              Email
+            </label>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                           text-[#5D4037]/35 text-[18px]">mail</span>
+              <input type="email" name="email" placeholder="ten@email.com" required
+                     class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
+                            pl-9 pr-3.5 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60">
+                Mật khẩu
+              </label>
+              <a href="#" class="text-[10px] font-bold text-[#8E352E] hover:underline">
+                Quên mật khẩu?
+              </a>
+            </div>
+            <div class="relative">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                           text-[#5D4037]/35 text-[18px]">lock</span>
+              <input type="password" name="password" id="login-password" placeholder="Mật khẩu của bạn"
+                     required
+                     class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
+                            pl-9 pr-10 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
+              <button type="button" onclick="togglePwd('login-password', this)"
+                      class="absolute right-3 top-1/2 -translate-y-1/2
+                             text-[#5D4037]/35 hover:text-[#5D4037] transition-colors">
+                <span class="material-symbols-outlined text-[18px]">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          {# Error message #}
+          <div id="login-error"
+               class="hidden px-4 py-2.5 bg-red-50 border border-red-200 rounded-sm
+                      text-xs text-red-700 font-medium"></div>
+
+          <button type="submit"
+                  class="submit-btn w-full py-3 rounded-sm bg-[#8E352E] text-white
+                         font-black text-[12px] uppercase tracking-widest shadow-md">
+            <span class="flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-lg"
+                    style="font-variation-settings:'FILL' 1;">login</span>
+              Đăng nhập
+            </span>
+          </button>
+        </form>
+
+      </div>
+
+      {# Footer strip #}
+      <div class="px-7 py-3.5 bg-[#F5F2EA] border-t border-[#D7CCC8]/60 text-center">
+        <p class="text-[10px] text-[#5D4037]/45 font-medium">
+          Bảo mật bởi OAuth 2.0 · Không lưu mật khẩu bên thứ ba
+        </p>
+      </div>
+    </div>
+
+    {# Back to home #}
+    <p class="text-center mt-6 text-[11px] text-[#5D4037]/55">
+      <a href="/" class="font-bold text-[#8E352E] hover:underline">← Quay về trang chủ</a>
+    </p>
+
+  </div>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+'use strict';
+
+// ── Tab switching ──────────────────────────────────────────────────────────────
+window.switchTab = function (tab) {
+  const isReg = tab === 'register';
+  document.getElementById('form-register').classList.toggle('hidden', !isReg);
+  document.getElementById('form-login').classList.toggle('hidden',  isReg);
+  document.getElementById('tab-register').className =
+    'flex-1 py-3.5 text-[11px] font-black uppercase tracking-widest transition-all ' +
+    (isReg ? 'tab-active' : 'tab-inactive');
+  document.getElementById('tab-login').className =
+    'flex-1 py-3.5 text-[11px] font-black uppercase tracking-widest transition-all ' +
+    (isReg ? 'tab-inactive' : 'tab-active');
+
+  // Update OAuth button labels
+  const label = isReg ? 'Tiếp tục với' : 'Đăng nhập với';
+  document.getElementById('google-btn-text').textContent   = label + ' Google';
+  document.getElementById('facebook-btn-text').textContent = label + ' Facebook';
+};
+
+// ── Toggle password visibility ─────────────────────────────────────────────────
+window.togglePwd = function (inputId, btn) {
+  const input = document.getElementById(inputId);
+  const icon  = btn.querySelector('.material-symbols-outlined');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.textContent = 'visibility_off';
+  } else {
+    input.type = 'password';
+    icon.textContent = 'visibility';
+  }
+};
+
+// ── Password strength ──────────────────────────────────────────────────────────
+window.checkStrength = function (val) {
+  const bar   = document.getElementById('strength-bar');
+  const fill  = document.getElementById('strength-fill');
+  const label = document.getElementById('strength-label');
+  if (!val) { bar.classList.add('hidden'); label.classList.add('hidden'); return; }
+
+  bar.classList.remove('hidden');
+  label.classList.remove('hidden');
+
+  let score = 0;
+  if (val.length >= 8)                    score++;
+  if (val.length >= 12)                   score++;
+  if (/[A-Z]/.test(val))                  score++;
+  if (/[0-9]/.test(val))                  score++;
+  if (/[^A-Za-z0-9]/.test(val))          score++;
+
+  const levels = [
+    { w: '20%',  cls: 'strength-weak',   text: 'Yếu',        color: '#E53935' },
+    { w: '40%',  cls: 'strength-weak',   text: 'Yếu',        color: '#E53935' },
+    { w: '55%',  cls: 'strength-fair',   text: 'Trung bình', color: '#FB8C00' },
+    { w: '75%',  cls: 'strength-good',   text: 'Khá',        color: '#FDD835' },
+    { w: '100%', cls: 'strength-strong', text: 'Mạnh',       color: '#43A047' },
+  ];
+  const lv = levels[Math.min(score, 4)];
+  fill.style.width = lv.w;
+  fill.className   = 'h-full rounded-full ' + lv.cls;
+  label.textContent = 'Độ mạnh: ' + lv.text;
+  label.style.color = lv.color;
+};
+
+// ── OAuth login ────────────────────────────────────────────────────────────────
+window.oauthLogin = function (provider) {
+  const textId = provider === 'google' ? 'google-btn-text' : 'facebook-btn-text';
+  const el = document.getElementById(textId);
+  if (el) el.textContent = 'Đang chuyển hướng...';
+  window.location.href = '/auth/' + provider + '/login';
+};
+
+// ── Form submit ────────────────────────────────────────────────────────────────
+window.handleSubmit = async function (e, type) {
+  e.preventDefault();
+  const form   = e.target;
+  const errEl  = document.getElementById(type + '-error');
+  errEl.classList.add('hidden');
+
+  if (type === 'register') {
+    const pwd     = form.password.value;
+    const confirm = form.confirm_password.value;
+    if (pwd !== confirm) {
+      errEl.textContent = 'Mật khẩu xác nhận không khớp.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if (pwd.length < 8) {
+      errEl.textContent = 'Mật khẩu phải có ít nhất 8 ký tự.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+  }
+
+  const btn = form.querySelector('button[type="submit"]');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="flex items-center justify-center gap-2">' +
+    '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span>' +
+    (type === 'register' ? 'Đang tạo tài khoản...' : 'Đang đăng nhập...') +
+    '</span>';
+
+  const endpoint = type === 'register' ? '/auth/register' : '/auth/login';
+  const body = new URLSearchParams();
+  if (type === 'register') {
+    const first = form.first_name ? form.first_name.value.trim() : '';
+    const last  = form.last_name  ? form.last_name.value.trim()  : '';
+    body.set('display_name', (first + ' ' + last).trim());
+  }
+  body.set('email',    form.email.value.trim());
+  body.set('password', form.password.value);
+
+  try {
+    const res  = await fetch(endpoint, { method: 'POST', body, credentials: 'same-origin' });
+    const data = await res.json();
+    if (res.ok && data.redirect) {
+      window.location.href = data.redirect;
+    } else {
+      errEl.textContent = data.error || 'Đã có lỗi xảy ra.';
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }
+  } catch {
+    errEl.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+    errEl.classList.remove('hidden');
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+};
+
+// ── Auto-switch to login tab if ?tab=login in URL ─────────────────────────────
+const _qs = new URLSearchParams(location.search);
+if (_qs.get('tab') === 'login') switchTab('login');
+
+// ── Show OAuth error if redirected back with ?error= ───────────────────────────
+const _oauthError = _qs.get('error');
+if (_oauthError) {
+  const msgs = {
+    google_not_configured:   'Google OAuth chưa được cấu hình.',
+    facebook_not_configured: 'Facebook OAuth chưa được cấu hình.',
+    invalid_state:           'Phiên xác thực hết hạn. Vui lòng thử lại.',
+    no_code:                 'Không nhận được mã xác thực từ nhà cung cấp.',
+    google_failed:           'Đăng nhập Google thất bại. Vui lòng thử lại.',
+    facebook_failed:         'Đăng nhập Facebook thất bại. Vui lòng thử lại.',
+  };
+  const errEl = document.getElementById('login-error');
+  if (errEl) {
+    errEl.textContent = msgs[_oauthError] || 'Đã có lỗi xảy ra khi đăng nhập.';
+    errEl.classList.remove('hidden');
+    switchTab('login');
+  }
+}
+
+})();
+</script>
+{% endblock %}

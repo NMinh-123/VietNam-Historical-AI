@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Lịch sử – Vical AI{% endblock %}
+{% block body_class %}bg-surface text-on-surface font-body{% endblock %}
+{% block page %}
+<header class="fixed top-0 right-0 left-0 md:left-64 z-40 bg-surface/80 backdrop-blur-md flex justify-between items-center h-16 px-6 border-b border-outline-variant/30">
+<h1 class="text-xl font-bold text-secondary font-serif">Lịch sử</h1>
+<div class="flex items-center gap-6">
+<div class="hidden sm:flex items-center bg-surface-container-low border border-secondary px-4 py-1.5 rounded-full focus-within:ring-1 focus-within:ring-secondary transition-all">
+<span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
+<input id="search-input" class="bg-transparent border-none text-sm focus:ring-0 p-0 text-on-surface w-48 placeholder-secondary/50" placeholder="Tìm kiếm hội thoại..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-secondary hover:text-primary transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<a href="/ask" class="text-secondary hover:text-primary transition-all" title="Hỏi đáp">
+<span class="material-symbols-outlined">history_edu</span>
+</a>
+</div>
+</div>
+</header>
+<main class="md:ml-64 pt-24 pb-[4.5rem] md:pb-12 px-6 lg:px-12 min-h-screen">
+<div class="max-w-5xl mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<div>
+<h2 class="text-4xl font-black text-primary mb-2 tracking-tight font-serif">Dấu ấn thời gian</h2>
+<p class="text-on-surface-variant font-body">Xem lại những hành trình khám phá lịch sử của bạn.</p>
+</div>
+<div class="flex p-1 bg-surface-container rounded-lg border border-outline-variant/50">
+<button data-filter="all" class="filter-btn px-6 py-1.5 text-sm font-bold bg-primary text-on-primary shadow-sm rounded transition-all">Tất cả</button>
+<button data-filter="ask" class="filter-btn px-6 py-1.5 text-sm font-medium text-on-surface-variant hover:text-primary transition-all rounded">Hỏi đáp</button>
+<button data-filter="persona" class="filter-btn px-6 py-1.5 text-sm font-medium text-on-surface-variant hover:text-primary transition-all rounded">Persona chat</button>
+</div>
+</div>
+
+<div id="history-list" class="grid grid-cols-1 gap-6">
+{% if not current_user %}
+<div class="flex flex-col items-center justify-center py-24 text-center col-span-full">
+  <div class="relative w-20 h-20 mb-6">
+    <div class="absolute inset-0 bg-primary/10 rounded-full blur-xl"></div>
+    <div class="relative flex items-center justify-center h-full">
+      <span class="material-symbols-outlined text-5xl text-primary/40" style="font-variation-settings: 'FILL' 1;">lock</span>
+    </div>
+  </div>
+  <h3 class="text-2xl font-bold text-on-surface mb-2 font-serif">Đăng nhập để xem lịch sử</h3>
+  <p class="text-on-surface-variant max-w-sm mx-auto mb-8 font-body">Lưu lại hành trình khám phá lịch sử của bạn và truy cập lại bất cứ lúc nào.</p>
+  <div class="flex gap-4">
+    <a href="/register?tab=login"
+       class="inline-flex items-center gap-2 px-8 py-3 bg-primary text-on-primary rounded font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+      <span class="material-symbols-outlined text-lg">login</span>
+      Đăng nhập
+    </a>
+    <a href="/register"
+       class="inline-flex items-center gap-2 px-8 py-3 border border-primary/30 text-primary rounded font-bold hover:bg-primary/5 transition-all">
+      Tạo tài khoản
+    </a>
+  </div>
+</div>
+{% else %}
+{% for conv in conversations %}
+<div class="group relative bg-surface-container-low border border-outline-variant/30 p-6 rounded transition-all hover:shadow-md hover:translate-y-[-2px] flex items-start gap-5"
+     data-conv-id="{{ conv.id }}"
+     data-chat-type="{{ conv.chat_type }}"
+     data-title="{{ conv.title | lower }}">
+  <div class="flex-shrink-0 w-12 h-12 rounded {{ 'bg-primary/10' if conv.chat_type == 'persona' else 'bg-secondary/10' }} flex items-center justify-center {{ 'text-primary' if conv.chat_type == 'persona' else 'text-secondary' }}">
+    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">{{ 'person' if conv.chat_type == 'persona' else 'history_edu' }}</span>
+  </div>
+  <div class="flex-grow min-w-0">
+    <div class="flex justify-between items-start mb-1">
+      <h3 class="text-xl font-bold text-secondary leading-tight font-serif truncate pr-4">{{ conv.title }}</h3>
+      {% if conv.chat_type == 'persona' %}
+      <span class="flex-shrink-0 text-[10px] font-bold text-on-primary bg-primary px-2 py-0.5 rounded border border-primary/20 uppercase tracking-widest">Persona</span>
+      {% else %}
+      <span class="flex-shrink-0 text-[10px] font-bold text-on-tertiary-container bg-tertiary-fixed px-2 py-0.5 rounded border border-tertiary/20 uppercase tracking-widest">Hỏi đáp</span>
+      {% endif %}
+    </div>
+    <p class="text-sm text-on-surface-variant line-clamp-2 mb-3 leading-relaxed">{{ conv.preview }}</p>
+    <div class="flex items-center gap-4 text-xs text-secondary/60">
+      <span class="flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">schedule</span>
+        <span class="conv-time" data-ts="{{ conv.updated_at }}">{{ conv.updated_at }}</span>
+      </span>
+      <span class="flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">chat_bubble</span>
+        {{ conv.message_count }} tin nhắn
+      </span>
+    </div>
+  </div>
+  <div class="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+    <a href="{{ '/persona/' + conv.persona_slug if conv.chat_type == 'persona' else '/ask' }}?conv={{ conv.id }}"
+       class="p-2 text-secondary hover:bg-secondary/10 rounded transition-colors block" title="Mở lại">
+      <span class="material-symbols-outlined">open_in_new</span>
+    </a>
+    <button class="btn-delete p-2 text-primary hover:bg-primary/10 rounded transition-colors" title="Xóa" data-conv-id="{{ conv.id }}">
+      <span class="material-symbols-outlined">delete</span>
+    </button>
+  </div>
+</div>
+{% else %}
+<div id="empty-state" class="flex flex-col items-center justify-center py-24 text-center col-span-full" {% if not current_user %}style="display:none"{% endif %}>
+  <div class="relative w-64 h-64 mb-8">
+    <div class="absolute inset-0 bg-primary/5 rounded-full blur-3xl"></div>
+    <div class="relative flex items-center justify-center h-full">
+      <span class="material-symbols-outlined text-8xl text-outline-variant" style="font-variation-settings: 'wght' 200;">history_edu</span>
+    </div>
+  </div>
+  <h3 class="text-2xl font-bold text-on-surface mb-2 font-serif">Bạn chưa có cuộc trò chuyện nào</h3>
+  <p class="text-on-surface-variant max-w-sm mx-auto mb-8 font-body">Bắt đầu một hành trình mới vào quá khứ ngay hôm nay để lưu giữ những kiến thức quý giá.</p>
+  <a href="/ask" class="inline-flex items-center gap-2 px-8 py-4 bg-primary text-on-primary rounded font-bold shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all">
+    <span class="material-symbols-outlined">add</span>
+    Tạo hội thoại mới
+  </a>
+</div>
+{% endfor %}
+{% endif %}{# end current_user check #}
+</div>
+
+{% if conversations and current_user %}
+<div class="mt-12 flex justify-center">
+  <p class="text-sm text-on-surface-variant">Hiển thị {{ conversations | length }} cuộc hội thoại gần nhất</p>
+</div>
+{% endif %}
+</div>
+</main>
+
+<div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary/5 rounded-full blur-3xl"></div>
+</div>
+
+<script>
+(function () {
+  document.getElementById('history-list').addEventListener('click', async function (e) {
+    const btn = e.target.closest('.btn-delete');
+    if (!btn) return;
+    const convId = btn.dataset.convId;
+    if (!confirm('Xóa cuộc hội thoại này?')) return;
+    const resp = await fetch(`/api/history/${convId}/delete`, { method: 'POST' });
+    if (resp.ok) {
+      const card = document.querySelector(`[data-conv-id="${convId}"]`);
+      card?.remove();
+      if (!document.querySelector('#history-list [data-conv-id]')) location.reload();
+    }
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm', 'font-bold');
+        b.classList.add('text-on-surface-variant', 'font-medium');
+      });
+      this.classList.add('bg-primary', 'text-on-primary', 'shadow-sm', 'font-bold');
+      this.classList.remove('text-on-surface-variant', 'font-medium');
+      const filter = this.dataset.filter;
+      document.querySelectorAll('#history-list [data-conv-id]').forEach(card => {
+        card.style.display = (filter === 'all' || card.dataset.chatType === filter) ? '' : 'none';
+      });
+    });
+  });
+
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      const q = this.value.toLowerCase();
+      document.querySelectorAll('#history-list [data-conv-id]').forEach(card => {
+        card.style.display = card.dataset.title.includes(q) ? '' : 'none';
+      });
+    });
+  }
+
+  // Format timestamps
+  document.querySelectorAll('.conv-time').forEach(el => {
+    const ts = el.dataset.ts;
+    if (!ts) return;
+    const d = new Date(ts);
+    const diff = Math.floor((Date.now() - d) / 1000);
+    if (diff < 60) el.textContent = 'vừa xong';
+    else if (diff < 3600) el.textContent = Math.floor(diff / 60) + ' phút trước';
+    else if (diff < 86400) el.textContent = Math.floor(diff / 3600) + ' giờ trước';
+    else el.textContent = Math.floor(diff / 86400) + ' ngày trước';
+  });
+})();
+</script>
+{% endblock %}

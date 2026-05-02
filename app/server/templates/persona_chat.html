@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+{% block title %}Vical AI – {{ persona.display_name }}{% endblock %}
+{% block body_class %}bg-background font-body text-on-surface antialiased overflow-hidden{% endblock %}
+{% block page %}
+
+{#
+   Persona Chat — Dynamic multi-persona template
+   Context variables required:
+     - persona       : dict (slug, display_name, title, era_label, bio_short,
+                             portrait_url, greeting_quote, greeting_sub,
+                             typing_label, speaker_label, accent_color,
+                             era_badge_class, knowledge_cutoff_year, placeholder)
+     - other_personas: list of dicts (same schema, all personas except current)
+#}
+
+{# ── Login modal (chỉ render khi chưa đăng nhập) ──────────────────────────── #}
+{% if not current_user %}
+<div id="login-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-[#2D1F1A]/60 backdrop-blur-sm"></div>
+  <div class="relative bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm shadow-2xl max-w-sm w-full p-8 text-center overflow-hidden">
+    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#D4AF37] via-[#8E352E] to-[#D4AF37]"></div>
+    <div class="w-16 h-16 bg-[#8E352E]/10 rounded-sm flex items-center justify-center mx-auto mb-5">
+      <span class="material-symbols-outlined text-[#8E352E] text-3xl" style="font-variation-settings:'FILL' 1;">lock</span>
+    </div>
+    <h2 class="font-headline text-xl font-bold text-[#2D1F1A] mb-2">Cần đăng nhập</h2>
+    <p class="text-[#5D4037]/70 text-sm mb-8 leading-relaxed">
+      Đăng nhập để bắt đầu đối thoại với<br>
+      <strong class="text-[#8E352E]">{{ persona.display_name }}</strong> và lưu lịch sử trò chuyện.
+    </p>
+    <a href="/register?tab=login"
+       class="block w-full py-3 bg-[#8E352E] text-white font-bold rounded-sm hover:bg-[#7B1113] transition-colors mb-3 text-sm">
+      Đăng nhập
+    </a>
+    <a href="/register"
+       class="block w-full py-3 border border-[#D4AF37] text-[#8E352E] font-bold rounded-sm hover:bg-[#D4AF37]/5 transition-colors text-sm">
+      Tạo tài khoản miễn phí
+    </a>
+    <p class="text-[10px] text-[#5D4037]/40 mt-5 uppercase tracking-widest font-bold">Hoàn toàn miễn phí</p>
+  </div>
+</div>
+{% endif %}
+
+<main class="md:ml-64 min-h-screen flex flex-col relative ancient-texture pb-[4.5rem] md:pb-0">
+
+  {# ── Header ─────────────────────────────────────────────────────────────── #}
+  <header class="bg-surface/80 backdrop-blur-md fixed top-0 right-0 left-0 md:left-64 z-40
+                 flex justify-between items-center h-16 px-6 border-b border-outline-variant/30">
+    <div class="flex items-center gap-4">
+      <a href="/persona"
+         class="flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors text-sm font-medium"
+         title="Chọn nhân vật khác">
+        <span class="material-symbols-outlined text-base">arrow_back</span>
+        <span class="hidden md:inline">Tiền nhân</span>
+      </a>
+      <span class="text-xl font-black text-secondary font-headline">Vical AI</span>
+      <div class="hidden md:flex gap-4 ml-4">
+        <span class="text-on-surface-variant font-medium text-sm">
+          Đối thoại với <strong class="text-primary">{{ persona.display_name }}</strong>
+        </span>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="bg-surface-container flex items-center px-4 py-1.5 rounded-full ring-antique-gold/30 focus-within:ring-2">
+        <span class="material-symbols-outlined text-outline text-lg mr-2">search</span>
+        <input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-outline"
+               placeholder="Tìm kiếm sử liệu..." type="text"/>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-on-surface-variant cursor-pointer">notifications</span>
+        <a href="/history" class="text-on-surface-variant hover:text-primary transition-colors" title="Lịch sử">
+          <span class="material-symbols-outlined cursor-pointer">history_edu</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  {# ── Main layout ─────────────────────────────────────────────────────────── #}
+  <section class="flex-1 mt-16 p-6 flex flex-col lg:flex-row gap-8 max-h-[calc(100vh-64px)] overflow-hidden">
+
+    {# ── Left Panel: Persona Card ─────────────────────────────────────────── #}
+    <div class="lg:w-1/3 flex flex-col gap-6">
+
+      {# Portrait card #}
+      <div class="parchment-bg gold-border rounded-xl p-8 flex flex-col items-center text-center shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1.5"
+             style="background: linear-gradient(90deg, transparent, {{ persona.accent_color }}, transparent);"></div>
+
+        <div class="relative w-48 h-64 mb-6">
+          <img alt="{{ persona.display_name }}"
+               class="w-full h-full object-cover object-top rounded-xl shadow-lg border-2 border-antique-gold/40"
+               src="{{ persona.portrait_url }}"/>
+          <div class="absolute -bottom-4 -right-4 px-3 py-1 rounded-full text-xs font-black uppercase tracking-tighter shadow-md"
+               style="background-color: {{ persona.accent_color }}; color: #1a0a00;">
+            Trang nghiêm
+          </div>
+        </div>
+
+        <h2 class="font-headline text-3xl font-black text-primary mb-1">{{ persona.display_name }}</h2>
+        <span class="px-4 py-1 rounded-full text-sm font-bold mb-4 {{ persona.era_badge_class }}">
+          {{ persona.era_label }}
+        </span>
+        <p class="text-secondary body-md leading-relaxed font-medium">{{ persona.bio_short }}</p>
+      </div>
+
+      {# Other personas carousel #}
+      <div class="bg-surface-container/50 rounded-xl p-4 backdrop-blur-sm border border-antique-gold/20">
+        <h3 class="label-md font-bold text-secondary mb-3 px-2">Khởi hành cùng bậc vĩ nhân khác</h3>
+        <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+
+          {# Current persona — active ring #}
+          <a href="/persona/{{ persona.slug }}"
+             class="min-w-[70px] flex flex-col items-center gap-2 cursor-pointer">
+            <div class="w-14 h-14 rounded-full bg-surface-container-low flex items-center justify-center
+                        border-2 shadow-md ring-2"
+                 style="border-color: {{ persona.accent_color }}; ring-color: {{ persona.accent_color }}20;">
+              <img alt="{{ persona.display_name }}"
+                   class="w-full h-full rounded-full object-cover object-top"
+                   src="{{ persona.portrait_url }}"/>
+            </div>
+            <span class="text-[10px] text-center font-black text-primary">{{ persona.display_name }}</span>
+          </a>
+
+          {# Other personas #}
+          {% for other in other_personas %}
+          <a href="/persona/{{ other.slug }}"
+             class="min-w-[70px] flex flex-col items-center gap-2 group cursor-pointer">
+            <img alt="{{ other.display_name }}"
+                 class="w-14 h-14 rounded-full object-cover object-top border-2 border-transparent
+                        group-hover:border-antique-gold transition-all"
+                 src="{{ other.portrait_url }}"/>
+            <span class="text-[10px] text-center font-bold text-secondary">{{ other.display_name }}</span>
+          </a>
+          {% endfor %}
+
+        </div>
+      </div>
+    </div>
+
+    {# ── Right Panel: Chat ────────────────────────────────────────────────── #}
+    <div class="flex-1 flex flex-col bg-surface-container-lowest rounded-2xl shadow-xl
+                border border-antique-gold/20 overflow-hidden relative">
+      <div class="absolute inset-0 opacity-[0.05] pointer-events-none parchment-bg"></div>
+
+      {# Messages area #}
+      <div id="chat-scroll" class="flex-1 overflow-y-auto p-6 space-y-8 relative">
+        <div id="chat-messages" class="flex flex-col gap-6">
+
+          {# ── Initial greeting bubble ────────────────────────────────────── #}
+          <div class="flex flex-col items-start max-w-[85%]">
+            <div class="flex items-center gap-2 mb-2 ml-4">
+              <span class="text-[10px] font-black text-primary tracking-widest uppercase">{{ persona.speaker_label }}</span>
+              <div class="w-1 h-1 bg-antique-gold rounded-full"></div>
+              <span class="text-[10px] text-secondary/60">{{ persona.knowledge_cutoff_year }} AD</span>
+            </div>
+            <div class="scroll-effect p-6 rounded-lg border-x-[6px] border-antique-gold/60 relative gold-border">
+              <div class="absolute -left-2 -top-3 w-4 h-6 bg-antique-gold rounded shadow-md"></div>
+              <div class="absolute -left-2 -bottom-3 w-4 h-6 bg-antique-gold rounded shadow-md"></div>
+              <div class="absolute -right-2 -top-3 w-4 h-6 bg-antique-gold rounded shadow-md"></div>
+              <div class="absolute -right-2 -bottom-3 w-4 h-6 bg-antique-gold rounded shadow-md"></div>
+              <p class="font-headline text-lg text-secondary leading-relaxed italic font-medium">
+                {{ persona.greeting_quote }}
+              </p>
+              <div class="mt-4 pt-4 border-t border-dashed border-antique-gold/40 flex items-center justify-between">
+                <p class="text-sm text-secondary font-bold">{{ persona.greeting_sub }}</p>
+                <button class="p-2 hover:bg-antique-gold/20 rounded-full transition-colors" type="button">
+                  <span class="material-symbols-outlined text-primary text-xl" data-weight="fill">volume_up</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {# ── Typing indicator ───────────────────────────────────────────── #}
+          <div id="typing-indicator" class="hidden items-center gap-3 ml-4">
+            <div class="flex gap-1">
+              <div class="w-2 h-2 bg-antique-gold rounded-full animate-bounce"></div>
+              <div class="w-2 h-2 bg-antique-gold rounded-full animate-bounce [animation-delay:0.2s]"></div>
+              <div class="w-2 h-2 bg-antique-gold rounded-full animate-bounce [animation-delay:0.4s]"></div>
+            </div>
+            <span class="text-xs italic text-secondary font-bold">{{ persona.typing_label }}</span>
+          </div>
+
+        </div>
+      </div>
+
+      {# ── Input area ──────────────────────────────────────────────────────── #}
+      <div class="p-6 bg-surface-container/80 backdrop-blur-md border-t-2 border-antique-gold/30">
+        <div class="relative flex items-center">
+          <button class="absolute left-4 p-2 text-secondary hover:text-primary transition-colors" type="button">
+            <span class="material-symbols-outlined">attach_file</span>
+          </button>
+          <textarea id="user-message"
+                    class="w-full pl-14 pr-36 py-4 bg-surface-container-lowest rounded-xl
+                           border-2 border-antique-gold/20 focus:border-antique-gold focus:ring-0
+                           shadow-inner resize-none body-md text-secondary"
+                    placeholder="{{ persona.placeholder }}"
+                    rows="1"></textarea>
+          <div class="absolute right-3 flex items-center gap-2">
+            <button class="p-2 bg-primary text-antique-gold rounded-lg hover:brightness-110 transition-all shadow-md" type="button">
+              <span class="material-symbols-outlined">mic</span>
+            </button>
+            <button id="send-message"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-primary text-antique-gold rounded-lg
+                           font-black shadow-lg hover:scale-105 transition-transform border border-antique-gold/30"
+                    type="button">
+              <span>Gửi</span>
+              <span class="material-symbols-outlined text-sm">send</span>
+            </button>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center justify-center gap-6">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-antique-gold shadow-sm"></span>
+            <span class="text-[10px] font-black text-primary uppercase tracking-widest">Sắc thái: Trang nghiêm</span>
+          </div>
+          <div class="flex items-center gap-2 opacity-40">
+            <span class="w-2 h-2 rounded-full bg-secondary"></span>
+            <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Ngữ cảnh: Bình dân</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  {# Decorative watermark #}
+  <div class="fixed bottom-0 right-0 w-64 h-64 opacity-[0.03] pointer-events-none select-none overflow-hidden">
+    <svg class="w-full h-full fill-primary" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-width="0.5"></circle>
+      <path d="M50 10 L50 20 M90 50 L80 50 M50 90 L50 80 M10 50 L20 50" stroke="currentColor" stroke-width="0.5"></path>
+      <circle cx="50" cy="50" fill="currentColor" r="5"></circle>
+    </svg>
+  </div>
+
+</main>
+
+{# ── JavaScript — persona-aware chat ────────────────────────────────────────── #}
+<script>
+(function () {
+  const IS_AUTHENTICATED = {{ 'true' if current_user else 'false' }};
+
+  // ── Config injected từ Django context ──────────────────────────────────────
+  const PERSONA_SLUG    = "{{ persona.slug }}";
+  const SPEAKER_LABEL   = "{{ persona.speaker_label }}";
+  const API_URL         = "/api/persona-chat/{{ persona.slug }}";
+
+  const loginModal = document.getElementById("login-modal");
+  function showLoginModal() {
+    if (loginModal) loginModal.classList.remove("hidden");
+  }
+
+  // ── DOM refs ───────────────────────────────────────────────────────────────
+  const textarea  = document.getElementById("user-message");
+  const sendBtn   = document.getElementById("send-message");
+  const messages  = document.getElementById("chat-messages");
+  const typing    = document.getElementById("typing-indicator");
+  const scrollBox = document.getElementById("chat-scroll");
+
+  if (!textarea || !sendBtn || !messages) return;
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function scrollToBottom() {
+    if (scrollBox) scrollBox.scrollTop = scrollBox.scrollHeight;
+  }
+
+  function addUserBubble(text) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "flex flex-col items-end max-w-[80%] ml-auto";
+    wrapper.innerHTML = `
+      <div class="bg-primary text-on-primary px-6 py-4 rounded-2xl rounded-tr-none
+                  shadow-md border-b-4 border-black/10">
+        <p class="body-md font-medium"></p>
+      </div>
+      <span class="text-[10px] text-secondary/60 mt-2 mr-2">Bạn</span>
+    `;
+    wrapper.querySelector("p").textContent = text;
+    messages.appendChild(wrapper);
+  }
+
+  function formatSourceLabel(source) {
+    if (!source) return "";
+    return source.label || source.title || source.file_name || "Tài liệu không rõ tên";
+  }
+
+  function addBotBubble(text, sources = [], verification = "") {
+    const wrapper = document.createElement("div");
+    wrapper.className = "flex flex-col items-start max-w-[85%]";
+    wrapper.innerHTML = `
+      <div class="flex items-center gap-2 mb-2 ml-4">
+        <span class="text-[10px] font-black text-primary tracking-widest uppercase">${SPEAKER_LABEL}</span>
+        <div class="w-1 h-1 bg-antique-gold rounded-full"></div>
+        <span class="text-[10px] text-secondary/60">Vical AI</span>
+      </div>
+      <div class="scroll-effect p-6 rounded-lg border-x-[6px] border-antique-gold/60
+                  relative gold-border bg-surface-container-lowest/80">
+        <p class="font-headline text-lg text-secondary leading-relaxed italic font-medium whitespace-pre-line"></p>
+        <div class="mt-4 pt-4 border-t border-dashed border-antique-gold/40 hidden" data-sources-wrapper>
+          <p class="text-[11px] font-black uppercase tracking-[0.18em] text-primary">Sử liệu tham chiếu</p>
+          <ul class="mt-3 space-y-2 text-sm text-secondary/90" data-sources-list></ul>
+        </div>
+        <p class="mt-4 text-[11px] text-secondary/60 hidden" data-verification></p>
+      </div>
+    `;
+    wrapper.querySelector("p").textContent = text;
+
+    const sourcesWrapper  = wrapper.querySelector("[data-sources-wrapper]");
+    const sourcesList     = wrapper.querySelector("[data-sources-list]");
+    const verificationNode= wrapper.querySelector("[data-verification]");
+
+    if (Array.isArray(sources) && sources.length > 0 && sourcesWrapper && sourcesList) {
+      sourcesWrapper.classList.remove("hidden");
+      sources.forEach(function (source) {
+        const item = document.createElement("li");
+        item.className = "leading-relaxed";
+        item.textContent = `[nguon=${source.index}] ${formatSourceLabel(source)}`;
+        sourcesList.appendChild(item);
+      });
+    }
+
+    if (verification && verificationNode) {
+      verificationNode.classList.remove("hidden");
+      verificationNode.textContent = verification;
+    }
+
+    messages.appendChild(wrapper);
+  }
+
+  // ── Conversation state ───────────────────────────────────────────────────
+  let _convId = null;
+  let _messages = [];
+  const SESSION_KEY = 'vical_persona_chat_' + PERSONA_SLUG;
+
+  function _saveToSession() {
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ convId: _convId, messages: _messages }));
+    } catch (_) {}
+  }
+
+  async function _loadConvFromServer(convId) {
+    try {
+      const resp = await fetch(`/api/history/${convId}/messages`);
+      if (!resp.ok) return false;
+      const data = await resp.json();
+      _convId = convId;
+      data.messages.forEach(m => {
+        if (m.role === 'user') addUserBubble(m.content);
+        else addBotBubble(m.content, m.sources || []);
+      });
+      _messages = data.messages.map(m => ({ role: m.role, content: m.content, sources: m.sources || [] }));
+      return true;
+    } catch (_) { return false; }
+  }
+
+  async function _restoreChat() {
+    const urlConvId = new URLSearchParams(location.search).get('conv');
+    if (IS_AUTHENTICATED && urlConvId) {
+      const ok = await _loadConvFromServer(urlConvId);
+      if (ok) return;
+    }
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      if (!saved) return;
+      const state = JSON.parse(saved);
+      if (!state.messages?.length) return;
+      _convId = state.convId;
+      _messages = state.messages;
+      _messages.forEach(m => {
+        if (m.role === 'user') addUserBubble(m.content);
+        else addBotBubble(m.content, m.sources || []);
+      });
+    } catch (_) {}
+  }
+
+  // ── History persistence ───────────────────────────────────────────────────
+
+  async function saveToHistory(question, answer, sources) {
+    try {
+      const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+      const resp = await fetch("/api/history/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({
+          conversation_id: _convId,
+          question,
+          answer,
+          sources,
+          chat_type: "persona",
+          persona_slug: PERSONA_SLUG,
+        }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        _convId = data.conversation_id;
+        const url = new URL(location.href);
+        url.searchParams.set('conv', _convId);
+        history.replaceState({}, '', url.toString());
+      }
+    } catch (_) {}
+  }
+
+  // ── Send message ──────────────────────────────────────────────────────────
+  async function sendMessage() {
+    const content = textarea.value.trim();
+    if (!content) return;
+
+    if (!IS_AUTHENTICATED) {
+      showLoginModal();
+      return;
+    }
+
+    addUserBubble(content);
+    textarea.value = "";
+
+    if (typing) {
+      typing.classList.remove("hidden");
+      typing.classList.add("flex");
+    }
+    scrollToBottom();
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: content, conversation_id: _convId }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || data.error) {
+        addBotBubble(data.error || "Có lỗi xảy ra khi gọi chatbot.");
+      } else {
+        const sources = data.sources || [];
+        addBotBubble(data.answer || "Không có câu trả lời.", sources, data.verification || "");
+        _messages.push({ role: 'user', content });
+        _messages.push({ role: 'assistant', content: data.answer || "", sources });
+        _saveToSession(); // lưu ngay — trước khi bất kỳ network call nào
+        saveToHistory(content, data.answer || "", sources).then(() => {
+          _saveToSession(); // cập nhật lại với convId thật từ server
+        });
+      }
+    } catch (err) {
+      addBotBubble("Không thể kết nối tới máy chủ chatbot. Vui lòng kiểm tra lại backend.");
+    } finally {
+      if (typing) {
+        typing.classList.add("hidden");
+        typing.classList.remove("flex");
+      }
+      scrollToBottom();
+    }
+  }
+
+  // ── Restore on load ──────────────────────────────────────────────────────
+  _restoreChat();
+
+  // ── Event listeners ───────────────────────────────────────────────────────
+  sendBtn.addEventListener("click", sendMessage);
+  textarea.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Auto-resize textarea
+  textarea.addEventListener("input", function () {
+    this.style.height = "auto";
+    this.style.height = Math.min(this.scrollHeight, 120) + "px";
+  });
+})();
+</script>
+{% endblock %}

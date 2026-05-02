@@ -1,0 +1,741 @@
+{% extends "base.html" %}
+{% block title %}Dòng thời gian – Vical AI{% endblock %}
+{% block body_class %}bg-[#f4ecd8] text-[#2d1f1b] font-body min-h-screen overflow-hidden{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Scrollbar hide ── */
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ── Timeline scroll ── */
+  #timeline-scroll {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #timeline-scroll.dragging { cursor: grabbing; }
+
+  /* ── Dynasty node default + active ── */
+  .dynasty-node .d-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .dynasty-node:hover .d-card {
+    transform: translateY(-4px) scale(1.04);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+  .dynasty-node.active .d-card {
+    transform: translateY(-6px) scale(1.07);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+  }
+  .dynasty-node.active .d-tick {
+    opacity: 1 !important;
+    width: 2px !important;
+  }
+
+  /* ── Card connector dot on axis ── */
+  .dynasty-node .d-dot {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .dynasty-node:hover .d-dot,
+  .dynasty-node.active .d-dot {
+    transform: scale(1.6);
+    opacity: 1 !important;
+  }
+
+  /* ── Tooltip ── */
+  #tooltip {
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  /* ── Legend pill active ── */
+  .leg-item.active span.leg-dot {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+  .leg-item.active span.leg-name {
+    font-weight: 900;
+    color: #2d1f1b !important;
+  }
+
+  /* ── Panel slide ── */
+  #side-panel {
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── Nav arrow buttons ── */
+  .nav-arrow {
+    transition: background 0.15s, transform 0.15s;
+  }
+  .nav-arrow:hover { transform: scale(1.1); }
+  .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* ── Year milestone marks ── */
+  .year-mark {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+  }
+  .year-mark-line {
+    width: 1px;
+    height: 10px;
+    background: #5D4037;
+    opacity: 0.2;
+  }
+  .year-mark-label {
+    font-size: 9px;
+    color: #5D4037;
+    opacity: 0.45;
+    font-weight: 700;
+    white-space: nowrap;
+    margin-top: 1px;
+  }
+
+  /* ── Scroll progress bar ── */
+  #scroll-progress {
+    transition: width 0.1s linear;
+  }
+
+  /* ── King item hover ── */
+  .king-item {
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  /* ── Parchment texture subtle overlay ── */
+  #timeline-scroll::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(93,64,55,0.015) 2px,
+      rgba(93,64,55,0.015) 3px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+{% endblock %}
+
+{% block page %}
+
+{# ── Header ──────────────────────────────────────────────────────────────── #}
+<header class="fixed top-0 right-0 left-0 md:left-64 z-40 bg-[#f4ecd8]/95 backdrop-blur-md
+               flex justify-between items-center h-16 px-6 border-b border-[#5D4037]/20 shadow-sm">
+  <div class="flex items-center gap-3">
+    <a href="/"
+       class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#5D4037]/10 transition-colors text-[#5D4037]">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+    </a>
+    <div>
+      <h1 class="text-base font-black text-[#5D4037] uppercase tracking-widest font-headline leading-none">Ký Ức Đại Việt</h1>
+      <p class="text-[10px] text-[#5D4037]/50 font-medium mt-0.5">Từ Hùng Vương đến nay · 14 triều đại</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-4">
+    {# Keyboard hint #}
+    <div class="hidden lg:flex items-center gap-2 text-[10px] text-[#5D4037]/40 font-medium">
+      <kbd class="px-1.5 py-0.5 bg-[#5D4037]/10 rounded text-[#5D4037]/60 font-mono">←</kbd>
+      <kbd class="px-1.5 py-0.5 bg-[#5D4037]/10 rounded text-[#5D4037]/60 font-mono">→</kbd>
+      <span>di chuyển</span>
+      <span class="mx-1 opacity-30">·</span>
+      <kbd class="px-1.5 py-0.5 bg-[#5D4037]/10 rounded text-[#5D4037]/60 font-mono">Enter</kbd>
+      <span>mở</span>
+      <span class="mx-1 opacity-30">·</span>
+      <kbd class="px-1.5 py-0.5 bg-[#5D4037]/10 rounded text-[#5D4037]/60 font-mono">Esc</kbd>
+      <span>đóng</span>
+    </div>
+    {# Scroll progress #}
+    <div class="hidden sm:flex items-center gap-2">
+      <span class="text-[10px] text-[#5D4037]/40">Tiến độ:</span>
+      <div class="w-24 h-1.5 bg-[#5D4037]/15 rounded-full overflow-hidden">
+        <div id="scroll-progress" class="h-full rounded-full bg-[#D4AF37]" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+{# ── Main wrapper ─────────────────────────────────────────────────────────── #}
+<main class="md:ml-64 pt-16 h-screen flex flex-col overflow-hidden">
+
+  {# ── Legend / quick-nav bar ─────────────────────────────────────────────── #}
+  <div id="legend-bar"
+       class="px-6 py-2.5 bg-[#f4ecd8]/90 border-b border-[#5D4037]/10
+              flex items-center gap-1 overflow-x-auto scrollbar-hide flex-shrink-0">
+    <span class="text-[10px] font-black uppercase tracking-widest text-[#5D4037]/40 whitespace-nowrap mr-2 flex-shrink-0">Triều đại</span>
+  </div>
+
+  {# ── Timeline track ─────────────────────────────────────────────────────── #}
+  <div id="timeline-scroll" class="flex-1 overflow-x-auto overflow-y-hidden relative">
+
+    {# Axis line — absolute, behind cards #}
+    <div id="axis-line"
+         class="absolute pointer-events-none"
+         style="top:50%; height:3px; left:0; right:0; transform:translateY(-50%);
+                background: linear-gradient(90deg, transparent 0%, #D4AF37 8%, #8B6914 50%, #D4AF37 92%, transparent 100%);
+                opacity:0.35;">
+    </div>
+
+    {# Year milestone marks — injected by JS #}
+    <div id="year-marks" class="absolute bottom-8 left-0 pointer-events-none" style="height:24px;"></div>
+
+    {# Dynasty nodes — injected by JS #}
+    <div id="dynasty-nodes" class="relative flex items-center h-full"></div>
+  </div>
+
+  {# ── Bottom: year strip + scroll hint ──────────────────────────────────── #}
+  <div class="flex-shrink-0 h-10 flex items-center justify-between px-6
+              bg-[#f4ecd8]/70 border-t border-[#5D4037]/10 text-[10px] text-[#5D4037]/40 font-medium">
+    <span id="current-era-label">← Kéo ngang hoặc dùng phím mũi tên để khám phá</span>
+    <span id="current-year-display" class="font-black text-[#8B6914]"></span>
+  </div>
+
+</main>
+
+{# ── Floating Tooltip ─────────────────────────────────────────────────────── #}
+<div id="tooltip"
+     class="fixed z-30 pointer-events-none opacity-0 px-3 py-2 bg-[#2d1f1b]/90 text-[#fdf6e3]
+            rounded-lg shadow-xl text-xs font-bold max-w-[180px] text-center leading-snug"
+     style="top:0;left:0;">
+</div>
+
+{# ── Side Panel ───────────────────────────────────────────────────────────── #}
+<div id="side-panel"
+     class="fixed top-0 right-0 h-full w-full sm:w-[22rem] bg-[#fdf6e3] shadow-2xl z-50
+            flex flex-col border-l-4 translate-x-full"
+     style="border-left-color: #D4AF37;">
+
+  {# Panel header #}
+  <div id="panel-header-bar"
+       class="flex-shrink-0 px-5 py-4 border-b border-[#D4AF37]/30">
+    <div class="flex items-start justify-between">
+      <div class="flex-1 min-w-0">
+        <p id="panel-era" class="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B6914]"></p>
+        <h2 id="panel-title" class="text-xl font-black text-[#3e1f0f] font-headline mt-0.5 leading-tight"></h2>
+        <p id="panel-years" class="text-xs text-[#5D4037]/60 mt-1 font-semibold"></p>
+      </div>
+      <button id="panel-close"
+              class="flex-shrink-0 ml-3 w-8 h-8 flex items-center justify-center rounded-full
+                     hover:bg-[#D4AF37]/20 transition-colors text-[#5D4037]">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+
+    {# Prev / Next navigation #}
+    <div class="flex items-center gap-2 mt-3">
+      <button id="panel-prev" class="nav-arrow flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-bold
+                                      text-[#5D4037] border-[#5D4037]/20 bg-[#5D4037]/5 hover:bg-[#5D4037]/15">
+        <span class="material-symbols-outlined text-sm">chevron_left</span>
+        <span id="panel-prev-label" class="truncate max-w-[80px]"></span>
+      </button>
+      <div class="flex-1 text-center">
+        <span id="panel-index-label" class="text-[9px] text-[#5D4037]/40 font-bold uppercase tracking-widest"></span>
+      </div>
+      <button id="panel-next" class="nav-arrow flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-bold
+                                      text-[#5D4037] border-[#5D4037]/20 bg-[#5D4037]/5 hover:bg-[#5D4037]/15">
+        <span id="panel-next-label" class="truncate max-w-[80px]"></span>
+        <span class="material-symbols-outlined text-sm">chevron_right</span>
+      </button>
+    </div>
+  </div>
+
+  {# Description #}
+  <p id="panel-desc"
+     class="flex-shrink-0 px-5 py-3 text-sm leading-relaxed text-[#5D4037]/75
+            border-b border-[#D4AF37]/20 italic bg-[#D4AF37]/5"></p>
+
+  {# Stats row #}
+  <div id="panel-stats"
+       class="flex-shrink-0 flex items-center divide-x divide-[#D4AF37]/30 border-b border-[#D4AF37]/20 bg-[#fdf6e3]">
+  </div>
+
+  {# Kings list #}
+  <div class="flex-1 overflow-y-auto">
+    <div class="px-5 pt-4 pb-2 flex items-center justify-between">
+      <p class="text-[9px] font-black uppercase tracking-[0.2em] text-[#8B6914]">Các vị vua / lãnh tụ</p>
+      <span id="panel-king-count" class="text-[9px] bg-[#D4AF37]/20 text-[#8B6914] px-2 py-0.5 rounded-full font-bold"></span>
+    </div>
+    <ul id="panel-kings" class="px-4 pb-8 space-y-2"></ul>
+  </div>
+</div>
+
+{# ── Overlay ──────────────────────────────────────────────────────────────── #}
+<div id="panel-overlay"
+     class="fixed inset-0 bg-black/25 z-40 hidden backdrop-blur-[2px]
+            transition-opacity duration-300"></div>
+
+{# ── Data ─────────────────────────────────────────────────────────────────── #}
+<script id="dynasties-data" type="application/json">{{ dynasties_json | tojson }}</script>
+
+<script>
+(function () {
+'use strict';
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+const DYNASTIES = JSON.parse(document.getElementById('dynasties-data').textContent);
+const NOW = 2026;
+
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const nodesContainer  = document.getElementById('dynasty-nodes');
+const legendBar       = document.getElementById('legend-bar');
+const sidePanel       = document.getElementById('side-panel');
+const overlay         = document.getElementById('panel-overlay');
+const tooltip         = document.getElementById('tooltip');
+const scrollEl        = document.getElementById('timeline-scroll');
+const progressBar     = document.getElementById('scroll-progress');
+const eraLabel        = document.getElementById('current-era-label');
+const yearDisplay     = document.getElementById('current-year-display');
+
+// Panel elements
+const panelTitle      = document.getElementById('panel-title');
+const panelEra        = document.getElementById('panel-era');
+const panelYears      = document.getElementById('panel-years');
+const panelDesc       = document.getElementById('panel-desc');
+const panelKings      = document.getElementById('panel-kings');
+const panelHeaderBar  = document.getElementById('panel-header-bar');
+const panelStats      = document.getElementById('panel-stats');
+const panelKingCount  = document.getElementById('panel-king-count');
+const panelIndexLabel = document.getElementById('panel-index-label');
+const panelPrev       = document.getElementById('panel-prev');
+const panelNext       = document.getElementById('panel-next');
+const panelPrevLabel  = document.getElementById('panel-prev-label');
+const panelNextLabel  = document.getElementById('panel-next-label');
+const panelClose      = document.getElementById('panel-close');
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let activeIdx  = -1;   // currently focused node index (keyboard nav)
+let openIdx    = -1;   // currently open panel index
+let nodeEls    = [];   // DOM nodes array (parallel to DYNASTIES)
+let legEls     = [];   // legend DOM items
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function yearLabel(y) {
+  if (y === null || y === undefined) return 'nay';
+  return y < 0 ? Math.abs(y) + ' TCN' : y + ' CN';
+}
+function spanYears(d) {
+  const end = d.end_year ?? NOW;
+  return Math.max(end - d.start_year, 10);
+}
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// ── Layout constants ──────────────────────────────────────────────────────────
+const SCALE   = 0.065;   // px per year
+const MIN_W   = 88;
+const PAD_X   = 80;      // left/right padding
+const ABOVE   = true;    // alternating layout: even = above, odd = below
+
+// ── Build nodes ───────────────────────────────────────────────────────────────
+let totalWidth = PAD_X * 2;
+const widths   = DYNASTIES.map(d => Math.max(Math.round(spanYears(d) * SCALE), MIN_W));
+totalWidth += widths.reduce((a, b) => a + b, 0);
+
+nodesContainer.style.width  = totalWidth + 'px';
+nodesContainer.style.height = '100%';
+nodesContainer.style.position = 'relative';
+// Make timeline track width match
+document.getElementById('timeline-track') &&
+  (document.getElementById('timeline-track').style.width = totalWidth + 'px');
+scrollEl.querySelector('#axis-line') &&
+  (scrollEl.querySelector('#axis-line').style.width = totalWidth + 'px');
+
+let xOffset = PAD_X;
+
+DYNASTIES.forEach(function (d, i) {
+  const w   = widths[i];
+  const alt = i % 2 === 0; // alternate above/below axis
+
+  // ── Outer wrapper ────────────────────────────────────────────────────────
+  const node = document.createElement('div');
+  node.className = 'dynasty-node absolute flex flex-col items-center cursor-pointer';
+  node.style.cssText = `left:${xOffset}px; width:${w}px; top:0; bottom:0;`;
+  node.dataset.idx = i;
+  node.tabIndex = 0;
+  node.setAttribute('role', 'button');
+  node.setAttribute('aria-label', d.name);
+
+  // ── Axis tick line ───────────────────────────────────────────────────────
+  const tick = document.createElement('div');
+  tick.className = 'd-tick absolute';
+  tick.style.cssText = `left:0; width:1px; background:${d.color}; opacity:0.25;
+    top:30%; bottom:30%;`;
+  node.appendChild(tick);
+
+  // ── Connector dot on axis ────────────────────────────────────────────────
+  const dot = document.createElement('div');
+  dot.className = 'd-dot absolute rounded-full';
+  dot.style.cssText = `width:8px; height:8px; background:${d.color};
+    left:${w/2 - 4}px; top:calc(50% - 4px); opacity:0.7; z-index:2;`;
+  node.appendChild(dot);
+
+  // ── Connector line (dot → card) ──────────────────────────────────────────
+  const lineH = 52;
+  const line = document.createElement('div');
+  line.className = 'absolute';
+  line.style.cssText = `width:1px; background:${d.color}; opacity:0.35;
+    left:${w/2}px;
+    ${alt
+      ? `top:calc(50% - ${lineH + 4}px); height:${lineH}px;`
+      : `top:calc(50% + 4px); height:${lineH}px;`
+    }`;
+  node.appendChild(line);
+
+  // ── Card ─────────────────────────────────────────────────────────────────
+  const cardW   = Math.min(w - 12, 170);
+  const cardLeft = (w - cardW) / 2;
+  const card = document.createElement('div');
+  card.className = 'd-card absolute flex flex-col items-center text-center px-2 py-2.5 rounded-xl border-2 shadow-md select-none';
+  card.style.cssText = `
+    width:${cardW}px; left:${cardLeft}px;
+    background:${d.color}14; border-color:${d.color}55;
+    ${alt
+      ? `top:calc(50% - ${lineH + 4 + 80}px);`
+      : `top:calc(50% + ${lineH + 4}px);`
+    }
+  `;
+
+  // Year badge
+  const yBadge = document.createElement('div');
+  yBadge.className = 'text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full mb-1';
+  yBadge.style.cssText = `color:${d.color}; background:${d.color}20;`;
+  yBadge.textContent = yearLabel(d.start_year);
+  card.appendChild(yBadge);
+
+  // Name
+  const nameEl = document.createElement('p');
+  nameEl.className = 'font-black font-headline text-[#2d1f1b] leading-tight';
+  nameEl.style.fontSize = cardW < 90 ? '10px' : cardW < 130 ? '11px' : '13px';
+  nameEl.textContent = d.name;
+  card.appendChild(nameEl);
+
+  // King count pill
+  const pill = document.createElement('div');
+  pill.className = 'mt-1.5 text-[8px] font-bold px-2 py-0.5 rounded-full text-white';
+  pill.style.background = d.color;
+  pill.textContent = d.kings.length + ' người';
+  card.appendChild(pill);
+
+  // Active ring overlay (hidden by default)
+  const ring = document.createElement('div');
+  ring.className = 'd-ring absolute inset-0 rounded-xl border-2 opacity-0 pointer-events-none transition-opacity';
+  ring.style.borderColor = d.color;
+  card.appendChild(ring);
+
+  node.appendChild(card);
+
+  // ── Events ───────────────────────────────────────────────────────────────
+  node.addEventListener('click', () => openPanel(i));
+  node.addEventListener('mouseenter', (e) => showTooltip(e, d));
+  node.addEventListener('mousemove', (e) => moveTooltip(e));
+  node.addEventListener('mouseleave', hideTooltip);
+  node.addEventListener('focus', () => setActive(i));
+
+  nodesContainer.appendChild(node);
+  nodeEls.push(node);
+
+  // ── Legend pill ──────────────────────────────────────────────────────────
+  const leg = document.createElement('div');
+  leg.className = 'leg-item flex items-center gap-1.5 cursor-pointer flex-shrink-0 px-2 py-1 rounded-lg transition-colors hover:bg-[#5D4037]/10';
+  leg.dataset.idx = i;
+  leg.innerHTML = `
+    <span class="leg-dot w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all" style="background:${d.color};"></span>
+    <span class="leg-name text-[10px] font-bold text-[#5D4037]/60 whitespace-nowrap transition-colors">${d.name}</span>
+  `;
+  leg.addEventListener('click', () => { setActive(i, true); openPanel(i); });
+  legendBar.appendChild(leg);
+  legEls.push(leg);
+
+  xOffset += w;
+});
+
+// ── Year milestone marks ──────────────────────────────────────────────────────
+(function buildYearMarks() {
+  const container = document.getElementById('year-marks');
+  if (!container) return;
+
+  const MIN_YEAR = DYNASTIES[0].start_year;
+  const milestones = [];
+  // Every 500 years from rounded start
+  let y = Math.ceil(MIN_YEAR / 500) * 500;
+  while (y <= NOW + 100) { milestones.push(y); y += 500; }
+
+  milestones.forEach(yr => {
+    // Find approximate x position
+    let xPos = PAD_X;
+    for (let i = 0; i < DYNASTIES.length; i++) {
+      const d = DYNASTIES[i];
+      const end = d.end_year ?? NOW;
+      if (yr >= d.start_year && yr <= end) {
+        const frac = (yr - d.start_year) / Math.max(end - d.start_year, 1);
+        xPos += frac * widths[i];
+        // Add previous widths
+        for (let j = 0; j < i; j++) xPos += widths[j]; // wrong, fix below
+        break;
+      }
+    }
+    // Recalculate: sum up dynasty widths until yr
+    let cx = PAD_X;
+    for (let i = 0; i < DYNASTIES.length; i++) {
+      const d = DYNASTIES[i];
+      const end = d.end_year ?? NOW;
+      if (yr < d.start_year) break;
+      if (yr <= end) {
+        const frac = (yr - d.start_year) / Math.max(spanYears(d), 1);
+        cx += frac * widths[i];
+        break;
+      }
+      cx += widths[i];
+    }
+
+    const mark = document.createElement('div');
+    mark.className = 'year-mark';
+    mark.style.left = cx + 'px';
+    mark.innerHTML = `
+      <div class="year-mark-line"></div>
+      <div class="year-mark-label">${yearLabel(yr)}</div>
+    `;
+    container.appendChild(mark);
+  });
+  // Set container width
+  container.style.width = totalWidth + 'px';
+})();
+
+// ── Tooltip ───────────────────────────────────────────────────────────────────
+function showTooltip(e, d) {
+  const end = d.end_year ? yearLabel(d.end_year) : 'nay';
+  tooltip.innerHTML = `<div class="font-black" style="color:${d.color};">${d.name}</div>
+    <div class="opacity-60 text-[10px] mt-0.5">${yearLabel(d.start_year)} – ${end}</div>
+    <div class="opacity-50 text-[10px]">${d.kings.length} vua · nhấn để xem</div>`;
+  tooltip.style.opacity = '1';
+  moveTooltip(e);
+}
+function moveTooltip(e) {
+  const tw = tooltip.offsetWidth;
+  const th = tooltip.offsetHeight;
+  let x = e.clientX + 12;
+  let y = e.clientY - th - 8;
+  if (x + tw > window.innerWidth - 8) x = e.clientX - tw - 12;
+  if (y < 8) y = e.clientY + 16;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+}
+function hideTooltip() { tooltip.style.opacity = '0'; }
+
+// ── Active node (keyboard focus) ──────────────────────────────────────────────
+function setActive(idx, scrollInto) {
+  if (activeIdx >= 0 && nodeEls[activeIdx]) {
+    nodeEls[activeIdx].classList.remove('active');
+    nodeEls[activeIdx].querySelector('.d-ring').style.opacity = '0';
+    legEls[activeIdx] && legEls[activeIdx].classList.remove('active');
+  }
+  activeIdx = clamp(idx, 0, DYNASTIES.length - 1);
+  const el = nodeEls[activeIdx];
+  el.classList.add('active');
+  el.querySelector('.d-ring').style.opacity = '1';
+  legEls[activeIdx] && legEls[activeIdx].classList.add('active');
+
+  // Update bottom bar
+  const d = DYNASTIES[activeIdx];
+  eraLabel.textContent = d.name;
+  yearDisplay.textContent = yearLabel(d.start_year) + ' – ' + (d.end_year ? yearLabel(d.end_year) : 'nay');
+
+  if (scrollInto) scrollToNode(activeIdx);
+}
+
+// ── Scroll to node ────────────────────────────────────────────────────────────
+function scrollToNode(idx, instant) {
+  const el = nodeEls[idx];
+  if (!el) return;
+  const nodeLeft  = parseInt(el.style.left);
+  const nodeWidth = parseInt(el.style.width);
+  const viewW     = scrollEl.clientWidth;
+  const target    = nodeLeft - (viewW / 2) + (nodeWidth / 2);
+  scrollEl.scrollTo({ left: Math.max(0, target), behavior: instant ? 'auto' : 'smooth' });
+}
+
+// ── Open panel ────────────────────────────────────────────────────────────────
+function openPanel(idx) {
+  openIdx = clamp(idx, 0, DYNASTIES.length - 1);
+  setActive(openIdx, true);
+  renderPanel(DYNASTIES[openIdx]);
+
+  sidePanel.classList.remove('translate-x-full');
+  overlay.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderPanel(d) {
+  const idx = DYNASTIES.indexOf(d);
+  const end = d.end_year ? yearLabel(d.end_year) : 'nay';
+
+  // Accent color
+  sidePanel.style.borderLeftColor = d.color;
+  panelHeaderBar.style.background = d.color + '10';
+
+  // Text
+  panelEra.textContent   = 'Triều đại ' + (idx + 1) + ' / ' + DYNASTIES.length;
+  panelTitle.textContent = d.name;
+  panelYears.textContent = yearLabel(d.start_year) + ' – ' + end;
+  panelDesc.textContent  = d.description || '';
+
+  // Stats row
+  const totalYears = d.end_year ? (d.end_year - d.start_year) : (NOW - d.start_year);
+  panelStats.innerHTML = `
+    <div class="flex-1 flex flex-col items-center py-2.5 px-3">
+      <span class="text-base font-black" style="color:${d.color};">${d.kings.length}</span>
+      <span class="text-[9px] text-[#5D4037]/50 font-bold uppercase tracking-wider mt-0.5">Vua / lãnh tụ</span>
+    </div>
+    <div class="flex-1 flex flex-col items-center py-2.5 px-3">
+      <span class="text-base font-black" style="color:${d.color};">${Math.abs(totalYears)}</span>
+      <span class="text-[9px] text-[#5D4037]/50 font-bold uppercase tracking-wider mt-0.5">Năm trị vì</span>
+    </div>
+    <div class="flex-1 flex flex-col items-center py-2.5 px-3">
+      <span class="text-base font-black" style="color:${d.color};">${idx + 1}</span>
+      <span class="text-[9px] text-[#5D4037]/50 font-bold uppercase tracking-wider mt-0.5">Thứ tự</span>
+    </div>
+  `;
+
+  // Prev / Next
+  const hasPrev = idx > 0;
+  const hasNext = idx < DYNASTIES.length - 1;
+  panelPrev.disabled      = !hasPrev;
+  panelNext.disabled      = !hasNext;
+  panelPrevLabel.textContent = hasPrev ? DYNASTIES[idx - 1].name : '';
+  panelNextLabel.textContent = hasNext ? DYNASTIES[idx + 1].name : '';
+  panelIndexLabel.textContent = (idx + 1) + ' / ' + DYNASTIES.length;
+
+  // Kings
+  panelKingCount.textContent = d.kings.length + ' người';
+  panelKings.innerHTML = '';
+  d.kings.forEach(function (k, ki) {
+    const li = document.createElement('li');
+    li.className = 'king-item flex flex-col p-3 rounded-lg border-l-4 bg-[#fdf6e3] hover:bg-[#D4AF37]/10 cursor-default';
+    li.style.borderLeftColor = d.color + '80';
+
+    const rS = k.reign_start != null ? yearLabel(k.reign_start) : '';
+    const rE = k.reign_end   != null ? yearLabel(k.reign_end)   : 'nay';
+    const reign  = rS ? `${rS} – ${rE}` : '';
+    const temple = k.temple_name ? ` · <span class="opacity-60">${k.temple_name}</span>` : '';
+
+    li.innerHTML = `
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex-1 min-w-0">
+          <p class="font-black text-[#2d1f1b] text-sm leading-snug">${k.name}${temple}</p>
+          ${reign ? `<p class="text-[10px] font-bold mt-0.5" style="color:${d.color};">${reign}</p>` : ''}
+        </div>
+        <span class="text-[9px] text-[#5D4037]/30 font-bold flex-shrink-0 mt-0.5">#${ki + 1}</span>
+      </div>
+      ${k.description ? `<p class="text-xs text-[#5D4037]/65 mt-1.5 leading-relaxed italic border-t border-[#D4AF37]/20 pt-1.5">${k.description}</p>` : ''}
+    `;
+    panelKings.appendChild(li);
+  });
+
+  panelKings.scrollTop = 0;
+}
+
+// ── Close panel ───────────────────────────────────────────────────────────────
+function closePanel() {
+  sidePanel.classList.add('translate-x-full');
+  overlay.classList.add('hidden');
+  document.body.style.overflow = '';
+  openIdx = -1;
+  // Return focus to active node
+  if (activeIdx >= 0 && nodeEls[activeIdx]) nodeEls[activeIdx].focus({ preventScroll: true });
+}
+
+// ── Panel prev/next ───────────────────────────────────────────────────────────
+panelPrev.addEventListener('click', () => { if (openIdx > 0) openPanel(openIdx - 1); });
+panelNext.addEventListener('click', () => { if (openIdx < DYNASTIES.length - 1) openPanel(openIdx + 1); });
+panelClose.addEventListener('click', closePanel);
+overlay.addEventListener('click', closePanel);
+
+// ── Keyboard navigation ───────────────────────────────────────────────────────
+document.addEventListener('keydown', function (e) {
+  // In panel: left/right navigate dynasties
+  if (openIdx >= 0) {
+    if (e.key === 'ArrowLeft'  && openIdx > 0)                     { e.preventDefault(); openPanel(openIdx - 1); return; }
+    if (e.key === 'ArrowRight' && openIdx < DYNASTIES.length - 1)  { e.preventDefault(); openPanel(openIdx + 1); return; }
+    if (e.key === 'Escape')                                         { e.preventDefault(); closePanel(); return; }
+  }
+  // On timeline: navigate focus
+  if (e.key === 'ArrowRight') { e.preventDefault(); setActive(Math.min(activeIdx + 1, DYNASTIES.length - 1), true); }
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); setActive(Math.max(activeIdx - 1, 0), true); }
+  if (e.key === 'Enter' && activeIdx >= 0) { e.preventDefault(); openPanel(activeIdx); }
+  if (e.key === 'Escape' && openIdx >= 0) closePanel();
+});
+
+// ── Scroll progress bar ───────────────────────────────────────────────────────
+scrollEl.addEventListener('scroll', function () {
+  const max = scrollEl.scrollWidth - scrollEl.clientWidth;
+  const pct = max > 0 ? (scrollEl.scrollLeft / max) * 100 : 0;
+  progressBar.style.width = pct.toFixed(1) + '%';
+
+  // Detect which dynasty is most centred
+  const viewCentre = scrollEl.scrollLeft + scrollEl.clientWidth / 2;
+  let bestIdx = 0, bestDist = Infinity;
+  nodeEls.forEach((el, i) => {
+    const nl = parseInt(el.style.left);
+    const nw = parseInt(el.style.width);
+    const dist = Math.abs(nl + nw / 2 - viewCentre);
+    if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+  });
+  if (openIdx < 0) {
+    // Update bottom label without setting active ring
+    const d = DYNASTIES[bestIdx];
+    eraLabel.textContent = d.name;
+    yearDisplay.textContent = yearLabel(d.start_year) + ' – ' + (d.end_year ? yearLabel(d.end_year) : 'nay');
+  }
+});
+
+// ── Mouse wheel → horizontal scroll ──────────────────────────────────────────
+scrollEl.addEventListener('wheel', function (e) {
+  e.preventDefault();
+  scrollEl.scrollBy({ left: e.deltaY * 2.5 + e.deltaX, behavior: 'auto' });
+}, { passive: false });
+
+// ── Drag to scroll (mouse) ────────────────────────────────────────────────────
+let drag = { active: false, startX: 0, startScroll: 0 };
+scrollEl.addEventListener('mousedown', function (e) {
+  if (e.button !== 0) return;
+  drag.active = true;
+  drag.startX = e.clientX;
+  drag.startScroll = scrollEl.scrollLeft;
+  scrollEl.classList.add('dragging');
+  e.preventDefault();
+});
+document.addEventListener('mousemove', function (e) {
+  if (!drag.active) return;
+  const dx = e.clientX - drag.startX;
+  scrollEl.scrollLeft = drag.startScroll - dx;
+});
+document.addEventListener('mouseup', function () {
+  if (!drag.active) return;
+  drag.active = false;
+  scrollEl.classList.remove('dragging');
+});
+
+// ── Touch drag ────────────────────────────────────────────────────────────────
+let touch = { startX: 0, startScroll: 0 };
+scrollEl.addEventListener('touchstart', function (e) {
+  touch.startX = e.touches[0].clientX;
+  touch.startScroll = scrollEl.scrollLeft;
+}, { passive: true });
+scrollEl.addEventListener('touchmove', function (e) {
+  const dx = e.touches[0].clientX - touch.startX;
+  scrollEl.scrollLeft = touch.startScroll - dx;
+}, { passive: true });
+
+// ── Init: set first dynasty as focused ───────────────────────────────────────
+setActive(0, false);
+
+})();
+</script>
+{% endblock %}

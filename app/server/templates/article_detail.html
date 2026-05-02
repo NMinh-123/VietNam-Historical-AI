@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Vical AI – Trợ lý Lịch sử Việt Nam{% endblock %}
+{% block body_class %}bg-background font-body text-on-surface selection:bg-primary/20{% endblock %}
+{% block page %}
+    <main class="flex-1 flex flex-col md:ml-64 relative w-full h-full overflow-y-auto">
+        <div class="absolute inset-0 pattern-overlay pointer-events-none z-0 fixed"></div>
+        
+        <header class="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-outline-variant/50 px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <a href="/" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-outline-variant/30 text-secondary transition-colors">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </a>
+                <span class="text-xs font-bold uppercase tracking-widest text-secondary/60">Góc nhìn Sử gia</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-outline-variant/30 text-secondary transition-colors" title="Đánh dấu">
+                    <span class="material-symbols-outlined">bookmark_border</span>
+                </button>
+                <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-outline-variant/30 text-secondary transition-colors" title="Chia sẻ">
+                    <span class="material-symbols-outlined">share</span>
+                </button>
+            </div>
+        </header>
+
+        <article class="relative z-10 max-w-3xl mx-auto w-full px-6 py-12 pb-32">
+            
+            <div class="text-center mb-12">
+                <div class="inline-block px-3 py-1 border border-tertiary text-tertiary text-[10px] font-black uppercase tracking-widest rounded-sm mb-6">
+                    Triều Trần (1225 - 1400)
+                </div>
+                <h1 class="font-headline text-4xl md:text-5xl font-black text-primary leading-tight mb-6">
+                    Hào khí Đông A và <br>Hội nghị Diên Hồng
+                </h1>
+                <div class="flex items-center justify-center gap-4 text-sm text-secondary/70 font-medium">
+                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">edit_document</span> Vical Archive</span>
+                    <span>•</span>
+                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span> Đọc 5 phút</span>
+                </div>
+            </div>
+
+            <div class="bg-surface border border-outline-variant p-8 md:p-12 rounded-sm shadow-xl space-y-6 text-[15px] leading-loose text-on-surface">
+                
+                <p class="drop-cap">
+                    Tháng Chạp năm Giáp Thân (1284), trước thế giặc Nguyên Mông vô cùng tráng thịnh, Thượng hoàng Trần Thánh Tông đã triệu tập các bô lão trong cả nước về thềm điện Diên Hồng để ban yến và hỏi kế sách đánh giặc. Đây được xem là hội nghị dân chủ đầu tiên trong lịch sử Việt Nam.
+                </p>
+
+                <p>
+                    Lúc bấy giờ, quân Nguyên Mông dưới sự chỉ huy của Thoát Hoan đang mượn đường đánh Chiêm Thành để thực chất là mưu đồ thôn tính Đại Việt. Triều đình nhà Trần đứng trước hai lựa chọn khắc nghiệt: <strong>Hòa hay Đánh?</strong>
+                </p>
+
+                <blockquote class="border-l-4 border-tertiary pl-6 py-2 my-8 italic text-lg font-headline text-secondary/90 bg-tertiary/5 rounded-r-sm">
+                    "Nếu bệ hạ muốn hàng, xin hãy chém đầu thần trước đã!" <br>
+                    <span class="text-sm font-body font-bold text-primary block mt-2">— Hưng Đạo Đại Vương Trần Quốc Tuấn</span>
+                </blockquote>
+
+                <p>
+                    Khi Thượng hoàng hỏi: <em>"Thế giặc mạnh, nên hàng hay nên đánh?"</em>. Toàn thể bô lão đồng thanh hô to: <strong>"Đánh!"</strong>. Tiếng hô đồng lòng ấy đã kết thành một khối đại đoàn kết dân tộc vững chắc, tạo nên "Hào khí Đông A" lừng lẫy, làm tiền đề cho chiến thắng vang dội trên sông Bạch Đằng sau này.
+                </p>
+                
+                <p>
+                    Hội nghị Diên Hồng không chỉ là một quyết sách quân sự mà còn là biểu tượng của lòng yêu nước, ý chí độc lập tự cường và nghệ thuật "khoan thư sức dân" của nhà Trần.
+                </p>
+            </div>
+
+            <div class="mt-12 bg-primary/5 border border-primary/20 p-8 rounded-sm flex flex-col items-center text-center">
+                <div class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mb-4 shadow-lg">
+                    <span class="material-symbols-outlined text-2xl">auto_awesome</span>
+                </div>
+                <h3 class="font-headline text-xl font-bold text-primary mb-2">Bạn muốn tìm hiểu sâu hơn?</h3>
+                <p class="text-sm text-secondary mb-6 max-w-md">Vical AI có thể giải thích chi tiết về chiến thuật của Trần Hưng Đạo hoặc diễn biến các trận đánh lịch sử này.</p>
+                
+                <a href="/ask" class="px-8 py-3 bg-primary text-white text-sm font-bold uppercase tracking-wider rounded-sm shadow-md hover:bg-[#7B1113] transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">chat</span>
+                    Hỏi Vical AI ngay
+                </a>
+            </div>
+
+        </article>
+    </main>
+{% endblock %}
