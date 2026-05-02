@@ -1,4 +1,4 @@
-# Python
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
@@ -10,47 +10,48 @@ dist/
 build/
 .eggs/
 
-# Virtual environments
+# ── Virtual environments ──────────────────────────────────────────────────────
+.venv_Vical/
 venv/
 .venv/
 env/
-.env/
 
-# Environment variables
+# ── Secrets ───────────────────────────────────────────────────────────────────
 .env
 .env.*
 !.env.example
 
-# IDE
+# ── IDE & OS ──────────────────────────────────────────────────────────────────
 .DS_Store
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Claude
+# ── Claude ───────────────────────────────────────────────────────────────────
 .claude/
 
-# Database
-*.sqlite3
-*.db
-
-# Data storage
-**/ocr_data/
+# ── Vector DB & AI storage (binary, rất lớn) ─────────────────────────────────
+**/qdrant_db/
+**/qdrant_storage/
 **/lightrag_storage/
-qdrant_storage/
-qdrant_db/
-data/
+**/ocr_data/
 
-# Logs
+# ── Database runtime (tự tạo lại được) ───────────────────────────────────────
+app/server/db.sqlite3
+
+# ── Generated data ────────────────────────────────────────────────────────────
+app/data/child_docs.json
+app/data/parent_docs.json
+app/data/chunk_id_registry.json
+app/data/lightrag_ingest_manifest.json
+
+# ── Test output ───────────────────────────────────────────────────────────────
+data/test_reports/
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
 *.log
 logs/
-
-# Node (frontend assets nếu có)
 node_modules/
-
-# Misc
 cookies.txt
-*.json
-!package.json
-!tsconfig.json
+FIX_CHATBOT.md
