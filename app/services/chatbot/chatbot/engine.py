@@ -27,6 +27,7 @@ from data.process_data.e5_embeddings import (
     E5EmbeddingModel,
 )
 from services.chatbot.index_and_retrieve import (
+    GEMINI_OPENAI_BASE_URL,
     LIGHTRAG_WORKSPACE,
     PARENT_DOCSTORE_PATH,
     QDRANT_HOST,
@@ -415,3 +416,66 @@ class VietnamHistoryQueryEngine:
     async def ask(self, question: str) -> str:
         result = await self.ask_with_sources(question)
         return result["answer"]
+
+    async def ask_with_sources_stream(self, question: str, history: str = ""):
+        """Streaming version: yields SSE event dicts token by token."""
+        import openai as _openai
+
+        t0 = time.monotonic()
+        retrieval_query = _rewrite_query(question)
+        is_broad = _is_broad_query(question) or _is_broad_query(retrieval_query)
+        vec_top_k = _BROAD_TOP_K if is_broad else self._top_k
+        graph_top_k = _BROAD_GRAPH_TOP_K if is_broad else 10
+
+        if is_broad:
+            vector_bundle, graph_bundle = await asyncio.gather(
+                self._retrieve_decomposed(_decompose_broad_query(retrieval_query), top_k_each=3),
+                self.get_graph(retrieval_query, top_k=graph_top_k),
+            )
+        else:
+            vector_bundle, graph_bundle = await asyncio.gather(
+                self.get_vector(retrieval_query, top_k=vec_top_k),
+                self.get_graph(retrieval_query, top_k=graph_top_k),
+            )
+
+        vector_items = vector_bundle["items"]
+        _logger.info("[stream] retrieval %.2fs — vector=%d", time.monotonic() - t0, len(vector_items))
+
+        if not vector_items and not graph_bundle["items"]:
+            yield {"type": "token", "text": "Tôi chưa tìm thấy tài liệu lịch sử chính xác về vấn đề này."}
+            yield {"type": "done", "sources": []}
+            return
+
+        sources = _build_source_payload(vector_items)
+        vector_context = _format_context_items(vector_items)
+        entities, relations = _parse_graph(graph_bundle["items"])
+        history_block = (
+            f"▌LỊCH SỬ HỘI THOẠI (ngữ cảnh từ các lượt trước)\n{history}\n\n"
+            if history else ""
+        )
+        prompt = _PROMPT_TEMPLATE.format(
+            entities=entities,
+            relations=relations,
+            vector_context=vector_context,
+            history_block=history_block,
+            question=question,
+        )
+
+        client = _openai.AsyncOpenAI(api_key=self.api_key, base_url=GEMINI_OPENAI_BASE_URL)
+        try:
+            stream = await client.chat.completions.create(
+                model=self.llm_model_name,
+                messages=[{"role": "user", "content": prompt}],
+                stream=True,
+            )
+            async for chunk in stream:
+                if not chunk.choices:
+                    continue
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield {"type": "token", "text": delta}
+        except Exception as exc:
+            _logger.error("[stream] LLM thất bại: %s", exc, exc_info=True)
+            raise
+
+        yield {"type": "done", "sources": sources}

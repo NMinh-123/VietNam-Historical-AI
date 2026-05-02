@@ -163,6 +163,7 @@
   "use strict";
 
   const IS_AUTHENTICATED = {{ 'true' if current_user else 'false' }};
+  const USER_ID = {{ current_user.id | tojson if current_user else 'null' }};
   const TRIAL_LIMIT = 3;
 
   // ─── DOM refs ───────────────────────────────────────────────────────────────
@@ -335,7 +336,7 @@
   // ─── Conversation state ──────────────────────────────────────────────────────
   let _convId = null;
   let _messages = []; // [{role, content, sources?}]
-  const SESSION_KEY = 'vical_ask_chat';
+  const SESSION_KEY = USER_ID ? `vical_ask_chat_${USER_ID}` : 'vical_ask_chat_trial';
 
   function _saveToSession() {
     try {
@@ -410,6 +411,46 @@
     } catch (_) {}
   }
 
+  // ─── Streaming answer bubble ────────────────────────────────────────────────
+
+  function appendStreamingBubble() {
+    const id = `stream-${Date.now()}`;
+    messagesEl.insertAdjacentHTML("beforeend", `
+      <div id="${id}" class="flex justify-start max-w-4xl w-full mx-auto">
+        <div class="flex items-start gap-4 max-w-[90%]">
+          <div class="w-10 h-10 rounded-sm bg-[#5D4037] flex-shrink-0 flex items-center justify-center shadow-lg">
+            <span class="material-symbols-outlined text-[#F5F2EA] text-xl"
+                  style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+          </div>
+          <div class="bg-[#FDFBF7] border border-[#D7CCC8] p-6 rounded-sm shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]"></div>
+            <div id="${id}-text" class="space-y-3 text-[#2D1F1A] leading-loose text-sm font-medium"></div>
+          </div>
+        </div>
+      </div>`);
+    scrollBottom();
+    return id;
+  }
+
+  function finalizeStreamingBubble(id, rawText, sources) {
+    const textEl = document.getElementById(`${id}-text`);
+    if (textEl) textEl.innerHTML = formatAnswer(rawText);
+    const bubble = document.getElementById(id);
+    if (bubble && sources.length) {
+      const sourcesHtml = `<div class="bg-[#F5F2EA] border border-[#D4AF37] p-5 rounded-sm mt-6 relative">
+        <div class="absolute -top-3 left-4 bg-[#D4AF37] px-3 py-0.5 text-[9px] font-black text-white uppercase tracking-widest">Tài liệu tham chiếu</div>
+        ${sources.map(s => `<div class="flex items-start gap-3 mb-2">
+          <span class="material-symbols-outlined text-[#D4AF37] text-lg">menu_book</span>
+          <p class="text-xs italic text-[#5D4037] leading-relaxed">
+            [${s.index}] <span class="font-bold text-[#8E352E]">${escHtml(s.label)}</span>
+            <span class="text-[#5D4037]/60"> — điểm ${s.score}</span>
+          </p></div>`).join("")}
+      </div>`;
+      bubble.querySelector('.bg-\\[\\#FDFBF7\\]').insertAdjacentHTML("beforeend", sourcesHtml);
+    }
+    scrollBottom();
+  }
+
   // ─── Send logic ─────────────────────────────────────────────────────────────
 
   async function sendQuestion() {
@@ -421,35 +462,69 @@
     appendTypingIndicator();
     setLoading(true);
 
+    let rawAnswer = "";
+    let bubbleId = null;
+
     try {
-      const resp = await fetch("/api/ask", {
+      const resp = await fetch("/api/ask/stream", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ question, conversation_id: _convId }),
       });
 
-      const data = await resp.json();
-      removeTypingIndicator();
-
       if (resp.status === 403) {
+        removeTypingIndicator();
         showTrialModal();
         return;
       }
-
       if (!resp.ok) {
-        const msg = typeof data.detail === "string" ? data.detail : (data.error || "Đã xảy ra lỗi, vui lòng thử lại.");
-        appendErrorBubble(msg);
-      } else {
-        const sources = data.sources || [];
-        appendAnswerBubble(data.answer, sources);
-        _messages.push({ role: 'user', content: question });
-        _messages.push({ role: 'assistant', content: data.answer, sources });
-        _saveToSession(); // lưu ngay — trước khi bất kỳ network call nào
-        saveToHistory(question, data.answer, sources).then(() => {
-          _saveToSession(); // cập nhật lại với convId thật từ server
-        });
-        if (!IS_AUTHENTICATED && data.trial_remaining !== undefined) {
-          updateTrialBadge(data.trial_remaining);
+        removeTypingIndicator();
+        const data = await resp.json().catch(() => ({}));
+        appendErrorBubble(typeof data.detail === "string" ? data.detail : "Đã xảy ra lỗi.");
+        return;
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop(); // giữ lại dòng chưa hoàn chỉnh
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          let event;
+          try { event = JSON.parse(line.slice(6)); } catch { continue; }
+
+          if (event.type === "token") {
+            if (!bubbleId) {
+              removeTypingIndicator();
+              bubbleId = appendStreamingBubble();
+            }
+            rawAnswer += event.text;
+            // Render incremental: escape + format on each token
+            const textEl = document.getElementById(`${bubbleId}-text`);
+            if (textEl) textEl.innerHTML = formatAnswer(rawAnswer);
+            scrollBottom();
+
+          } else if (event.type === "done") {
+            const sources = event.sources || [];
+            if (bubbleId) finalizeStreamingBubble(bubbleId, rawAnswer, sources);
+            _messages.push({ role: "user", content: question });
+            _messages.push({ role: "assistant", content: rawAnswer, sources });
+            _saveToSession();
+            saveToHistory(question, rawAnswer, sources).then(() => _saveToSession());
+            if (!IS_AUTHENTICATED) updateTrialBadge(event.trial_remaining ?? 0);
+
+          } else if (event.type === "error") {
+            removeTypingIndicator();
+            appendErrorBubble(event.message || "Đã xảy ra lỗi.");
+          }
         }
       }
     } catch (err) {

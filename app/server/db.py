@@ -22,6 +22,7 @@ def init_db(db_path: Path, timeline_path: Path) -> None:
     _DB_PATH = db_path
     _TIMELINE_PATH = timeline_path
     _create_tables()
+    _migrate()
 
 
 def _conn() -> sqlite3.Connection:
@@ -29,6 +30,15 @@ def _conn() -> sqlite3.Connection:
     conn = sqlite3.connect(_DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def _migrate() -> None:
+    """Thêm cột user_id vào conversations nếu chưa có (migration cho DB cũ)."""
+    with _conn() as conn:
+        cols = [r[1] for r in conn.execute("PRAGMA table_info(conversations)").fetchall()]
+        if "user_id" not in cols:
+            conn.execute("ALTER TABLE conversations ADD COLUMN user_id TEXT REFERENCES users(id) ON DELETE CASCADE")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_conversations_user ON conversations(user_id)")
 
 
 def _create_tables() -> None:
@@ -60,6 +70,7 @@ def _create_tables() -> None:
 
             CREATE TABLE IF NOT EXISTS conversations (
                 id          TEXT PRIMARY KEY,
+                user_id     TEXT REFERENCES users(id) ON DELETE CASCADE,
                 title       TEXT NOT NULL,
                 chat_type   TEXT NOT NULL DEFAULT 'ask',
                 persona_slug TEXT NOT NULL DEFAULT '',
@@ -94,20 +105,24 @@ def save_turn(
     sources: list[dict],
     chat_type: str = "ask",
     persona_slug: str = "",
+    user_id: str | None = None,
 ) -> str:
     now = _now()
     with _conn() as conn:
         if conv_id:
-            row = conn.execute("SELECT id FROM conversations WHERE id=?", (conv_id,)).fetchone()
+            row = conn.execute(
+                "SELECT id FROM conversations WHERE id=? AND (user_id=? OR user_id IS NULL)",
+                (conv_id, user_id),
+            ).fetchone()
         else:
             row = None
 
         if row is None:
             conv_id = str(uuid.uuid4())
             conn.execute(
-                "INSERT INTO conversations(id,title,chat_type,persona_slug,message_count,preview,created_at,updated_at) "
-                "VALUES(?,?,?,?,0,'',?,?)",
-                (conv_id, question[:80], chat_type, persona_slug, now, now),
+                "INSERT INTO conversations(id,user_id,title,chat_type,persona_slug,message_count,preview,created_at,updated_at) "
+                "VALUES(?,?,?,?,?,0,'',?,?)",
+                (conv_id, user_id, question[:80], chat_type, persona_slug, now, now),
             )
 
         conn.execute(
@@ -128,17 +143,21 @@ def save_turn(
     return conv_id
 
 
-def list_conversations(limit: int = 50) -> list[dict[str, Any]]:
+def list_conversations(user_id: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
     with _conn() as conn:
         rows = conn.execute(
-            "SELECT * FROM conversations ORDER BY updated_at DESC LIMIT ?", (limit,)
+            "SELECT * FROM conversations WHERE user_id=? ORDER BY updated_at DESC LIMIT ?",
+            (user_id, limit),
         ).fetchall()
     return [dict(r) for r in rows]
 
 
-def get_messages(conv_id: str) -> dict[str, Any] | None:
+def get_messages(conv_id: str, user_id: str | None = None) -> dict[str, Any] | None:
     with _conn() as conn:
-        conv = conn.execute("SELECT * FROM conversations WHERE id=?", (conv_id,)).fetchone()
+        conv = conn.execute(
+            "SELECT * FROM conversations WHERE id=? AND (user_id=? OR user_id IS NULL)",
+            (conv_id, user_id),
+        ).fetchone()
         if conv is None:
             return None
         msgs = conn.execute(
@@ -153,9 +172,12 @@ def get_messages(conv_id: str) -> dict[str, Any] | None:
     }
 
 
-def delete_conversation(conv_id: str) -> bool:
+def delete_conversation(conv_id: str, user_id: str | None = None) -> bool:
     with _conn() as conn:
-        cur = conn.execute("DELETE FROM conversations WHERE id=?", (conv_id,))
+        cur = conn.execute(
+            "DELETE FROM conversations WHERE id=? AND (user_id=? OR user_id IS NULL)",
+            (conv_id, user_id),
+        )
         conn.execute("DELETE FROM messages WHERE conversation_id=?", (conv_id,))
     return cur.rowcount > 0
 
@@ -282,11 +304,13 @@ def get_user_stats(user_id: str) -> dict[str, int]:
     """Trả thống kê: số cuộc hội thoại, số tin nhắn đã gửi."""
     with _conn() as conn:
         conv_count = conn.execute(
-            "SELECT COUNT(*) FROM conversations WHERE id IN "
-            "(SELECT DISTINCT conversation_id FROM messages)",
+            "SELECT COUNT(*) FROM conversations WHERE user_id=?",
+            (user_id,),
         ).fetchone()[0]
         msg_count = conn.execute(
-            "SELECT COUNT(*) FROM messages WHERE role='user'",
+            "SELECT COUNT(*) FROM messages WHERE role='user' "
+            "AND conversation_id IN (SELECT id FROM conversations WHERE user_id=?)",
+            (user_id,),
         ).fetchone()[0]
     return {"conversations": conv_count, "messages": msg_count}
 

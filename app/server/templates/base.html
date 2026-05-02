@@ -19,6 +19,7 @@
   </head>
   <body class="h-screen flex min-h-0 {% block body_class %}{% endblock %}">
     {# --- Sidebar (desktop) --- #}
+    {% block sidebar %}
     <aside class="bg-secondary w-64 fixed left-0 top-0 hidden md:flex flex-col shadow-xl z-50 py-6 dong-son-pattern h-screen">
       <div class="px-6 mb-10">
         <a href="/" class="block hover:opacity-90 transition-opacity">
@@ -93,6 +94,8 @@
         {% endif %}
       </div>
     </aside>
+
+    {% endblock %}{# /sidebar #}
 
     {# --- Nội dung riêng từng trang --- #}
     {% block page %}{% endblock %}

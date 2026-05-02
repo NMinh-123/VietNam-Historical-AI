@@ -47,7 +47,8 @@ async def ask_question(request: Request):
 
 @router.get("/history", response_class=HTMLResponse)
 async def history(request: Request):
-    conversations = _db.list_conversations()
+    user = get_current_user(request)
+    conversations = _db.list_conversations(user_id=user["id"] if user else None)
     return _render(request, "history.html", {
         "conversations": conversations,
         "leftsidepath": "history",

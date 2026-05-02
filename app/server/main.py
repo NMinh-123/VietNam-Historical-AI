@@ -13,6 +13,7 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
@@ -227,6 +228,42 @@ async def list_personas() -> list[PersonaInfo]:
         )
         for p in ALL_PERSONAS
     ]
+
+
+@app.post("/api/ask/stream")
+async def ask_stream(request: Request, body: AskRequest) -> StreamingResponse:
+    """SSE endpoint: stream token-by-token từ LLM."""
+    user = auth_router.get_current_user(request)
+    if not user:
+        trial_count = request.session.get("trial_count", 0)
+        if trial_count >= TRIAL_LIMIT:
+            raise HTTPException(status_code=403, detail={"code": "trial_exceeded"})
+        request.session["trial_count"] = trial_count + 1
+
+    history = db.get_recent_turns(body.conversation_id) if body.conversation_id else ""
+
+    async def event_generator():
+        import json as _json
+        try:
+            if body.persona_slug:
+                persona = get_persona(body.persona_slug)
+                if persona is None:
+                    yield f"data: {_json.dumps({'type': 'error', 'message': 'Persona không tồn tại.'})}\n\n"
+                    return
+                engine = get_persona_engine()
+                result = await engine.ask_with_sources(body.question, persona=persona, history=history)
+                yield f"data: {_json.dumps({'type': 'token', 'text': result['answer']})}\n\n"
+                yield f"data: {_json.dumps({'type': 'done', 'sources': result.get('sources', [])})}\n\n"
+            else:
+                engine = get_engine()
+                async for event in engine.ask_with_sources_stream(body.question, history=history):
+                    yield f"data: {_json.dumps(event, ensure_ascii=False)}\n\n"
+        except Exception as exc:
+            import json as _json
+            yield f"data: {_json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 @app.get("/api/trial-status")
