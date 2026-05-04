@@ -41,7 +41,7 @@
 </div>
 {% endif %}
 
-<main class="flex flex-col flex-1 min-w-0 md:ml-64 relative bg-[#F5F2EA] parchment-texture" style="height:100vh;height:100dvh;">
+<main class="flex flex-col flex-1 md:ml-64 relative bg-[#F5F2EA] parchment-texture" style="height:100vh;height:100dvh;">
 
   <div class="absolute inset-0 pattern-overlay pointer-events-none"></div>
 
@@ -164,6 +164,7 @@
 
   const IS_AUTHENTICATED = {{ 'true' if current_user else 'false' }};
   const USER_ID = {{ current_user.id | tojson if current_user else 'null' }};
+  const SESSION_ID = {{ session_id | tojson if session_id else 'null' }};
   const TRIAL_LIMIT = 3;
 
   // ─── DOM refs ───────────────────────────────────────────────────────────────
@@ -336,7 +337,7 @@
   // ─── Conversation state ──────────────────────────────────────────────────────
   let _convId = null;
   let _messages = []; // [{role, content, sources?}]
-  const SESSION_KEY = USER_ID ? `vical_ask_chat_${USER_ID}` : 'vical_ask_chat_trial';
+  const SESSION_KEY = SESSION_ID ? `vical_ask_chat_${SESSION_ID}` : 'vical_ask_chat_trial';
 
   function _saveToSession() {
     try {

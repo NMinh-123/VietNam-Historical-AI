@@ -113,7 +113,13 @@ def _clear_session_cookie(response: RedirectResponse) -> None:
 
 
 def _callback_url(request: Request, provider: str) -> str:
-    base = str(request.base_url).rstrip("/")
+    # Ưu tiên env var (nếu deploy tự manage)
+    base = os.getenv("REDIRECT_BASE_URL", "").rstrip("/")
+    if not base:
+        # Đọc từ reverse-proxy headers (X-Forwarded-Proto / X-Forwarded-Host)
+        proto = request.headers.get("x-forwarded-proto") or request.url.scheme
+        host = request.headers.get("x-forwarded-host") or request.headers.get("host") or request.url.netloc
+        base = f"{proto}://{host}"
     return f"{base}/auth/{provider}/callback"
 
 
