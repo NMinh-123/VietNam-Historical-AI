@@ -10,6 +10,7 @@ authlib
 httpx
 itsdangerous
 bcrypt
+slowapi
 
 # Data validation
 pydantic
@@ -29,6 +30,9 @@ fastembed
 # Embeddings
 sentence-transformers
 numpy
+
+# Database
+asyncpg
 
 # Data ingestion
 pypdf

@@ -51,32 +51,15 @@
   <header class="fixed top-0 right-0 left-0 md:left-64 z-40 bg-[#F5F2EA]/90 backdrop-blur-md
                  flex justify-between items-center h-16 px-6 border-b border-[#D7CCC8]/50">
 
-    <div class="flex items-center gap-4 flex-1 max-w-2xl">
-      <div class="relative w-full group">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5D4037]/60 text-lg"
-              data-icon="search">search</span>
-        <input class="w-full bg-[#E7E0D2]/50 border-none rounded-sm pl-10 pr-4 py-2 text-sm
-                      focus:ring-1 focus:ring-[#5D4037] transition-all placeholder:text-[#5D4037]/40"
-               placeholder="Tra cứu dư địa chí, nhân vật..."
-               type="text" />
-      </div>
-    </div>
-
-    <div class="flex items-center gap-3 ml-4">
-      <button class="w-9 h-9 flex items-center justify-center text-[#5D4037] hover:bg-[#E7E0D2] transition-all rounded-sm">
-        <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+    <div class="flex items-center gap-3">
+      <button id="new-chat-btn"
+              title="Đoạn chat mới"
+              class="flex items-center gap-2 px-3 py-2 bg-[#8E352E] text-white text-xs font-bold uppercase tracking-widest
+                     rounded-sm shadow hover:bg-[#7B1113] transition-all">
+        <span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1;">add</span>
+        <span class="hidden sm:inline">Chat mới</span>
       </button>
-      <a href="/history"
-         class="w-9 h-9 flex items-center justify-center text-[#5D4037] hover:bg-[#E7E0D2] transition-all rounded-sm"
-         title="Lịch sử">
-        <span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
-      </a>
-      <div class="h-6 w-[1px] bg-[#D7CCC8] mx-1"></div>
-      <img alt="User Portrait"
-           class="w-8 h-8 rounded-sm object-cover border border-[#D7CCC8]"
-           src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVMqjuI9-89-zU77UEv1R845eRoEs6Xrit6-WpXDANcgVqr8qFPsxMgOa7btAXplUUrL7em3Wb3qtB-X40tchCn_rmWlVUryBu-ZJ0d9o1ttkqj5tT0hp96mhkvUa_DFB4QSBAeBuncOSD9Rw2T0KCL4F5D04qUGKCWvDwZ8KVyCgHCVbYMIZbbDTrZwYcD9WNZuNBqnggKfu301R0lQmvPTBjE-ez0lNMkye1K4za54f6tMmIDEw1JLKhcgop6V8ePPmUnqaSuCA" />
     </div>
-
   </header>
 
   <!-- ═══════════════════════════════════════════
@@ -337,12 +320,30 @@
   // ─── Conversation state ──────────────────────────────────────────────────────
   let _convId = null;
   let _messages = []; // [{role, content, sources?}]
-  const SESSION_KEY = SESSION_ID ? `vical_ask_chat_${SESSION_ID}` : 'vical_ask_chat_trial';
+  // Mỗi user có SESSION_KEY riêng — tránh dùng lại chat của user khác
+  const SESSION_KEY = IS_AUTHENTICATED
+    ? `vical_ask_chat_user_${SESSION_ID}`
+    : 'vical_ask_chat_trial';
 
   function _saveToSession() {
     try {
       sessionStorage.setItem(SESSION_KEY, JSON.stringify({ convId: _convId, messages: _messages }));
     } catch (_) {}
+  }
+
+  function _clearSession() {
+    try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+  }
+
+  function startNewChat() {
+    _convId = null;
+    _messages = [];
+    _clearSession();
+    messagesEl.innerHTML = "";
+    const url = new URL(location.href);
+    url.searchParams.delete('conv');
+    history.replaceState({}, '', url.toString());
+    inputEl.focus();
   }
 
   async function _loadConvFromServer(convId) {
@@ -363,25 +364,27 @@
   }
 
   async function _restoreChat() {
-    // Auth users: ưu tiên load từ server qua URL param ?conv=<id>
     const urlConvId = new URLSearchParams(location.search).get('conv');
+    // Auth users: chỉ restore khi có URL param ?conv= (tức là user chủ động mở lại)
     if (IS_AUTHENTICATED && urlConvId) {
       const ok = await _loadConvFromServer(urlConvId);
       if (ok) return;
     }
-    // Fallback: sessionStorage (cả trial user lẫn auth user khi URL không có conv)
-    try {
-      const saved = sessionStorage.getItem(SESSION_KEY);
-      if (!saved) return;
-      const state = JSON.parse(saved);
-      if (!state.messages?.length) return;
-      _convId = state.convId;
-      _messages = state.messages;
-      _messages.forEach(m => {
-        if (m.role === 'user') appendUserBubble(m.content);
-        else appendAnswerBubble(m.content, m.sources || []);
-      });
-    } catch (_) {}
+    // Trial users: restore từ sessionStorage
+    if (!IS_AUTHENTICATED) {
+      try {
+        const saved = sessionStorage.getItem(SESSION_KEY);
+        if (!saved) return;
+        const state = JSON.parse(saved);
+        if (!state.messages?.length) return;
+        _convId = state.convId;
+        _messages = state.messages;
+        _messages.forEach(m => {
+          if (m.role === 'user') appendUserBubble(m.content);
+          else appendAnswerBubble(m.content, m.sources || []);
+        });
+      } catch (_) {}
+    }
   }
 
   // ─── History persistence ────────────────────────────────────────────────────
@@ -541,6 +544,8 @@
   _restoreChat();
 
   // ─── Event listeners ────────────────────────────────────────────────────────
+
+  document.getElementById("new-chat-btn")?.addEventListener("click", startNewChat);
 
   sendBtn.addEventListener("click", sendQuestion);
 

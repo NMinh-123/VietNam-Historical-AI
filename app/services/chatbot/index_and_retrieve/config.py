@@ -44,7 +44,7 @@ SPARSE_MODEL_NAME = "Qdrant/bm25"
 # Qdrant server — đọc từ env để dùng được cả Docker lẫn local
 QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
-DEFAULT_GEMINI_MODEL_NAME = "gpt-5.4"
+DEFAULT_GEMINI_MODEL_NAME = "gemini-3.1-flash-lite"
 RPM_BY_MODEL_PREFIX = {
     "gemini-2.5-pro": 200,
     "gpt-5.4-mini": 200,
@@ -76,7 +76,7 @@ def _is_shopaikey_base_url(base_url: str) -> bool:
 GEMINI_OPENAI_BASE_URL = _normalize_openai_compatible_base_url(
     os.getenv("OPENAI_COMPAT_BASE_URL")
     or os.getenv("SHOPAIKEY_BASE_URL")
-    or "https://chat.trollllm.xyz/v1"
+    or "https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
 

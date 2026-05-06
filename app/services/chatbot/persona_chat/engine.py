@@ -68,6 +68,7 @@ class PersonaChatEngine:
         question: str,
         persona: PersonaConfig,
         history: str = "",
+        turns: list[dict] | None = None,
     ) -> dict[str, Any]:
         """Pipeline persona: guardrail → retrieval (tái dùng engine) → persona prompt → LLM."""
         # Bước 0: Time-Bound Guardrail
@@ -98,6 +99,7 @@ class PersonaChatEngine:
             _is_broad_query,
             _decompose_broad_query,
             _parse_graph,
+            _build_retrieval_query,
             _BROAD_TOP_K,
             _BROAD_GRAPH_TOP_K,
         )
@@ -105,10 +107,10 @@ class PersonaChatEngine:
         import time
 
         t0 = time.monotonic()
+        turns = turns or []
 
-        retrieval_query = _rewrite_query(question)
-        if retrieval_query != question:
-            _logger.info("[rewrite] '%s' → '%s'", question[:60], retrieval_query[:60])
+        retrieval_base, _topic_shifted = _build_retrieval_query(question, turns)
+        retrieval_query = _rewrite_query(retrieval_base)
 
         is_broad = _is_broad_query(question) or _is_broad_query(retrieval_query)
         vec_top_k = _BROAD_TOP_K if is_broad else self._engine._top_k

@@ -97,6 +97,103 @@ def _rewrite_query(question: str) -> str:
     return q if q else question
 
 
+# ── Conversational RAG helpers — zero LLM calls ───────────────────────────────
+#
+# Topic shift  : word overlap giữa câu hỏi mới và recent user messages
+# Pronoun/ref  : append recent user queries vào retrieval query (E5+BM25 handle it)
+# Entity track : chính các câu hỏi user là context — không cần extract riêng
+#
+# Kết quả: retrieval query được build hoàn toàn bằng pure Python, 0 LLM calls.
+
+_STOPWORDS_VI = {
+    "là", "của", "và", "trong", "có", "không", "đã", "được", "cho", "với",
+    "từ", "đến", "về", "hay", "hoặc", "gì", "nào", "bao", "nhiêu", "thì",
+    "mà", "khi", "nếu", "để", "vì", "do", "bởi", "tại", "ra", "vào", "lên",
+    "xuống", "đi", "lại", "cũng", "còn", "đây", "đó", "này", "kia", "ấy",
+    "một", "hai", "các", "những", "mọi", "ai", "sao", "như", "thế", "nên",
+    "hãy", "hơn", "nhất", "rất", "quá", "chỉ", "cùng", "theo", "sau", "trước",
+}
+
+_AMBIGUOUS_RE = _re.compile(
+    r"\b(ông|bà|họ|vị|người|nhân vật|vua|tướng|quân|cuộc|sự kiện|"
+    r"triều đại|thời kỳ|giai đoạn|chiến thắng|thất bại|phong trào|"
+    r"cuộc khởi nghĩa|cuộc chiến|cuộc kháng chiến)\s*(này|đó|ấy|trên|"
+    r"đã nêu|vừa nêu|đề cập|nói trên)\b"
+    r"|\b(ông|bà|họ|vị)\s+ấy\b",
+    _re.I | _re.UNICODE,
+)
+
+# Ngưỡng overlap từ vựng: < threshold → đổi chủ đề
+_TOPIC_SHIFT_THRESHOLD = 0.12
+
+
+def _word_set(text: str) -> set[str]:
+    """Tách từ, loại stopword, normalize."""
+    return {w for w in _re.split(r"\s+", text.lower().strip()) if w and w not in _STOPWORDS_VI}
+
+
+def _topic_shift(question: str, turns: list[dict]) -> bool:
+    """
+    So sánh word overlap giữa câu hỏi mới và 2 user messages gần nhất.
+    Trả True nếu chủ đề thay đổi hẳn.
+    Không coi là topic_shift nếu câu hỏi chứa đại từ/chỉ thị từ (câu hỏi
+    follow-up thường ngắn và overlap thấp nhưng vẫn cùng chủ đề).
+    """
+    if not turns:
+        return False
+
+    # Câu hỏi dùng đại từ chắc chắn là follow-up cùng chủ đề
+    if _AMBIGUOUS_RE.search(question):
+        return False
+
+    recent_user = " ".join(
+        t["content"] for t in turns[-4:] if t["role"] == "user"
+    )
+    q_words = _word_set(question)
+    h_words = _word_set(recent_user)
+
+    if not q_words or not h_words:
+        return False
+
+    overlap = len(q_words & h_words) / len(q_words)
+    shifted = overlap < _TOPIC_SHIFT_THRESHOLD
+    if shifted:
+        _logger.info("[topic_shift] overlap=%.2f → chủ đề mới: '%s'", overlap, question[:60])
+    return shifted
+
+
+def _build_retrieval_query(question: str, turns: list[dict]) -> tuple[str, bool]:
+    """
+    Pure Python, 0 LLM calls.
+    Trả về (retrieval_query, topic_shifted).
+
+    - Không có history: query = câu hỏi gốc.
+    - Đổi chủ đề:       query = câu hỏi gốc (lịch sử cũ không liên quan).
+    - Cùng chủ đề:      query = câu hỏi + recent user msgs (window context
+                        + giải quyết đại từ qua keyword appending).
+    """
+    if not turns:
+        return question, False
+
+    shifted = _topic_shift(question, turns)
+    if shifted:
+        return question, True
+
+    # Window context: thêm các câu hỏi user gần nhất làm context
+    # E5 dense sẽ capture semantic tương đồng; BM25 sparse pick up keyword khớp
+    recent_user_qs = [
+        t["content"][:120]
+        for t in turns[-6:]
+        if t["role"] == "user"
+    ][-2:]
+
+    parts = [question] + recent_user_qs
+    query = " ".join(parts)
+    if query != question:
+        _logger.info("[window] query: '%s'", query[:120])
+    return query, False
+
+
 # ── Broad query detection ─────────────────────────────────────────────────────
 _BROAD_PATTERNS = _re.compile(
     r"(tất cả|toàn bộ|các triều đại|lịch sử việt nam|"
@@ -132,8 +229,8 @@ _DYNASTIES = [
 
 
 def _decompose_broad_query(base_query: str) -> list[str]:
-    """Tạo sub-queries theo từng triều đại để retrieve song song."""
-    return _DYNASTIES
+    """Ghép từ khoá triều đại với base_query để retrieve có ngữ cảnh."""
+    return [f"{dynasty} {base_query}" for dynasty in _DYNASTIES]
 
 
 # ── parse_graph: trích entity + relation từ raw LightRAG output ──────────────
@@ -232,6 +329,9 @@ class VietnamHistoryQueryEngine:
             max_concurrency=4,
             transient_max_retries=3,
         )
+        import openai as _openai
+        self._stream_client = _openai.AsyncOpenAI(api_key=self.api_key, base_url=GEMINI_OPENAI_BASE_URL)
+        self._stream_semaphore = asyncio.Semaphore(4)
 
         async def _embed_func(texts):
             return await asyncio.to_thread(self.dense_model.embed, texts)
@@ -335,14 +435,17 @@ class VietnamHistoryQueryEngine:
         text = _coerce_text(raw)
         return {"items": [{"text": b} for b in _split_blocks(text)]}
 
-    async def ask_with_sources(self, question: str, history: str = "") -> dict[str, Any]:
-        """Pipeline sử gia: query rewrite → vector + graph song song → prompt → LLM → trả lời kèm nguồn."""
+    async def ask_with_sources(
+        self, question: str, history: str = "", turns: list[dict] | None = None
+    ) -> dict[str, Any]:
+        """Pipeline sử gia: standalone Q → entity tracking → window retrieval → prompt → LLM."""
         t0 = time.monotonic()
         _logger.info("[chatbot] Pipeline bắt đầu: %s", question[:80])
+        turns = turns or []
 
-        retrieval_query = _rewrite_query(question)
-        if retrieval_query != question:
-            _logger.info("[rewrite] '%s' → '%s'", question[:60], retrieval_query[:60])
+        # 0 LLM calls — pure Python: topic shift + window context
+        retrieval_base, topic_shifted = _build_retrieval_query(question, turns)
+        retrieval_query = _rewrite_query(retrieval_base)
 
         is_broad = _is_broad_query(question) or _is_broad_query(retrieval_query)
         vec_top_k = _BROAD_TOP_K if is_broad else self._top_k
@@ -417,12 +520,17 @@ class VietnamHistoryQueryEngine:
         result = await self.ask_with_sources(question)
         return result["answer"]
 
-    async def ask_with_sources_stream(self, question: str, history: str = ""):
+    async def ask_with_sources_stream(
+        self, question: str, history: str = "", turns: list[dict] | None = None
+    ):
         """Streaming version: yields SSE event dicts token by token."""
-        import openai as _openai
-
         t0 = time.monotonic()
-        retrieval_query = _rewrite_query(question)
+        turns = turns or []
+
+        # 0 LLM calls — pure Python: topic shift + window context
+        retrieval_base, _topic_shifted = _build_retrieval_query(question, turns)
+        retrieval_query = _rewrite_query(retrieval_base)
+
         is_broad = _is_broad_query(question) or _is_broad_query(retrieval_query)
         vec_top_k = _BROAD_TOP_K if is_broad else self._top_k
         graph_top_k = _BROAD_GRAPH_TOP_K if is_broad else 10
@@ -461,19 +569,19 @@ class VietnamHistoryQueryEngine:
             question=question,
         )
 
-        client = _openai.AsyncOpenAI(api_key=self.api_key, base_url=GEMINI_OPENAI_BASE_URL)
         try:
-            stream = await client.chat.completions.create(
-                model=self.llm_model_name,
-                messages=[{"role": "user", "content": prompt}],
-                stream=True,
-            )
-            async for chunk in stream:
-                if not chunk.choices:
-                    continue
-                delta = chunk.choices[0].delta.content
-                if delta:
-                    yield {"type": "token", "text": delta}
+            async with self._stream_semaphore:
+                stream = await self._stream_client.chat.completions.create(
+                    model=self.llm_model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                    stream=True,
+                )
+                async for chunk in stream:
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        yield {"type": "token", "text": delta}
         except Exception as exc:
             _logger.error("[stream] LLM thất bại: %s", exc, exc_info=True)
             raise

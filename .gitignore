@@ -55,3 +55,6 @@ logs/
 node_modules/
 cookies.txt
 FIX_CHATBOT.md
+fix_db.md
+report.md
+source_detail.md

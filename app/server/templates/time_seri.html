@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Dòng thời gian – Vical AI{% endblock %}
-{% block body_class %}bg-[#f4ecd8] text-[#2d1f1b] font-body min-h-screen overflow-hidden{% endblock %}
+{% block body_class %}bg-[#f4ecd8] text-[#2d1f1b] font-body overflow-hidden{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -164,7 +164,7 @@
 </header>
 
 {# ── Main wrapper ─────────────────────────────────────────────────────────── #}
-<main class="md:ml-64 flex-1 pt-16 h-screen flex flex-col overflow-hidden">
+<main class="md:ml-64 flex-1 pt-16 flex flex-col overflow-hidden" style="height:100dvh;">
 
   {# ── Legend / quick-nav bar ─────────────────────────────────────────────── #}
   <div id="legend-bar"
@@ -176,10 +176,10 @@
   {# ── Timeline track ─────────────────────────────────────────────────────── #}
   <div id="timeline-scroll" class="flex-1 overflow-x-auto overflow-y-hidden relative">
 
-    {# Axis line — absolute, behind cards #}
+    {# Axis line — spans full scrollable width, set by JS #}
     <div id="axis-line"
          class="absolute pointer-events-none"
-         style="top:50%; height:3px; left:0; right:0; transform:translateY(-50%);
+         style="top:50%; height:3px; left:0; width:100%; transform:translateY(-50%);
                 background: linear-gradient(90deg, transparent 0%, #D4AF37 8%, #8B6914 50%, #D4AF37 92%, transparent 100%);
                 opacity:0.35;">
     </div>
@@ -341,11 +341,7 @@ totalWidth += widths.reduce((a, b) => a + b, 0);
 nodesContainer.style.width  = totalWidth + 'px';
 nodesContainer.style.height = '100%';
 nodesContainer.style.position = 'relative';
-// Make timeline track width match
-document.getElementById('timeline-track') &&
-  (document.getElementById('timeline-track').style.width = totalWidth + 'px');
-scrollEl.querySelector('#axis-line') &&
-  (scrollEl.querySelector('#axis-line').style.width = totalWidth + 'px');
+document.getElementById('axis-line').style.width = totalWidth + 'px';
 
 let xOffset = PAD_X;
 
@@ -468,20 +464,6 @@ DYNASTIES.forEach(function (d, i) {
   while (y <= NOW + 100) { milestones.push(y); y += 500; }
 
   milestones.forEach(yr => {
-    // Find approximate x position
-    let xPos = PAD_X;
-    for (let i = 0; i < DYNASTIES.length; i++) {
-      const d = DYNASTIES[i];
-      const end = d.end_year ?? NOW;
-      if (yr >= d.start_year && yr <= end) {
-        const frac = (yr - d.start_year) / Math.max(end - d.start_year, 1);
-        xPos += frac * widths[i];
-        // Add previous widths
-        for (let j = 0; j < i; j++) xPos += widths[j]; // wrong, fix below
-        break;
-      }
-    }
-    // Recalculate: sum up dynasty widths until yr
     let cx = PAD_X;
     for (let i = 0; i < DYNASTIES.length; i++) {
       const d = DYNASTIES[i];

@@ -8,7 +8,7 @@ def clean_text(text):
     text = unicodedata.normalize('NFC', text)
     # Xử lý ngắt dòng và nối từ bị tách bởi dấu gạch nối cuối dòng
     text = text.replace("\r\n", "\n").replace("\r", "\n")
-    text = re.sub(r"(?<=\w)-\n(?=\w)", "", text)   # fix: (?<=w) → (?<=\w)
+    text = re.sub(r"(?<=\w)-\n(?=\w)", "", text)   
     # Gom khoảng trắng dư thừa (trừ xuống dòng)
     text = re.sub(r"[^\S\n]+", " ", text)
 
@@ -30,7 +30,6 @@ def clean_text(text):
             if cleaned_lines and cleaned_lines[-1] != "":
                 cleaned_lines.append("")
             continue
-
         cleaned_lines.append(line)
 
     cleaned_text = "\n".join(cleaned_lines)

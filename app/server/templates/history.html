@@ -9,14 +9,6 @@
 <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
 <input id="search-input" class="bg-transparent border-none text-sm focus:ring-0 p-0 text-on-surface w-48 placeholder-secondary/50" placeholder="Tìm kiếm hội thoại..." type="text"/>
 </div>
-<div class="flex items-center gap-4">
-<button class="text-secondary hover:text-primary transition-all">
-<span class="material-symbols-outlined">notifications</span>
-</button>
-<a href="/ask" class="text-secondary hover:text-primary transition-all" title="Hỏi đáp">
-<span class="material-symbols-outlined">history_edu</span>
-</a>
-</div>
 </div>
 </header>
 <main class="md:ml-64 flex-1 pt-24 pb-[4.5rem] md:pb-12 px-6 lg:px-12 min-h-screen">
@@ -58,10 +50,11 @@
 </div>
 {% else %}
 {% for conv in conversations %}
-<div class="group relative bg-surface-container-low border border-outline-variant/30 p-6 rounded transition-all hover:shadow-md hover:translate-y-[-2px] flex items-start gap-5"
+<div class="group relative bg-surface-container-low border border-outline-variant/30 p-6 rounded transition-all hover:shadow-md hover:translate-y-[-2px] flex items-start gap-5 cursor-pointer"
      data-conv-id="{{ conv.id }}"
      data-chat-type="{{ conv.chat_type }}"
-     data-title="{{ conv.title | lower }}">
+     data-title="{{ conv.title | lower }}"
+     data-href="{{ '/persona/' + conv.persona_slug if conv.chat_type == 'persona' else '/ask' }}?conv={{ conv.id }}">
   <div class="flex-shrink-0 w-12 h-12 rounded {{ 'bg-primary/10' if conv.chat_type == 'persona' else 'bg-secondary/10' }} flex items-center justify-center {{ 'text-primary' if conv.chat_type == 'persona' else 'text-secondary' }}">
     <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">{{ 'person' if conv.chat_type == 'persona' else 'history_edu' }}</span>
   </div>
@@ -131,15 +124,25 @@
 <script>
 (function () {
   document.getElementById('history-list').addEventListener('click', async function (e) {
-    const btn = e.target.closest('.btn-delete');
-    if (!btn) return;
-    const convId = btn.dataset.convId;
-    if (!confirm('Xóa cuộc hội thoại này?')) return;
-    const resp = await fetch(`/api/history/${convId}/delete`, { method: 'POST' });
-    if (resp.ok) {
-      const card = document.querySelector(`[data-conv-id="${convId}"]`);
-      card?.remove();
-      if (!document.querySelector('#history-list [data-conv-id]')) location.reload();
+    // Xóa
+    const deleteBtn = e.target.closest('.btn-delete');
+    if (deleteBtn) {
+      e.stopPropagation();
+      const convId = deleteBtn.dataset.convId;
+      if (!confirm('Xóa cuộc hội thoại này?')) return;
+      const resp = await fetch(`/api/history/${convId}/delete`, { method: 'POST' });
+      if (resp.ok) {
+        const card = document.querySelector(`[data-conv-id="${convId}"]`);
+        card?.remove();
+        if (!document.querySelector('#history-list [data-conv-id]')) location.reload();
+      }
+      return;
+    }
+
+    // Mở lại — bấm vào bất kỳ đâu trên card
+    const card = e.target.closest('[data-href]');
+    if (card) {
+      window.location.href = card.dataset.href;
     }
   });
 

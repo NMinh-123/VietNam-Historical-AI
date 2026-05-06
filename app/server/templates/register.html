@@ -160,17 +160,19 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
-                Họ
+                Họ <span class="text-[#8E352E]">*</span>
               </label>
-              <input type="text" name="first_name" placeholder="Nguyễn"
+              <input type="text" name="first_name" placeholder="Nguyễn" required
+                     autocomplete="given-name"
                      class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
                             px-3.5 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
             </div>
             <div>
               <label class="block text-[10px] font-black uppercase tracking-widest text-[#5D4037]/60 mb-1.5">
-                Tên
+                Tên <span class="text-[#8E352E]">*</span>
               </label>
-              <input type="text" name="last_name" placeholder="Văn A"
+              <input type="text" name="last_name" placeholder="Văn A" required
+                     autocomplete="family-name"
                      class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
                             px-3.5 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
             </div>
@@ -184,6 +186,7 @@
               <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
                            text-[#5D4037]/35 text-[18px]">mail</span>
               <input type="email" name="email" placeholder="ten@email.com" required
+                     autocomplete="email"
                      class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
                             pl-9 pr-3.5 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
             </div>
@@ -198,6 +201,7 @@
                            text-[#5D4037]/35 text-[18px]">lock</span>
               <input type="password" name="password" id="reg-password" placeholder="Tối thiểu 8 ký tự"
                      required minlength="8"
+                     autocomplete="new-password"
                      oninput="checkStrength(this.value)"
                      class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
                             pl-9 pr-10 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
@@ -222,7 +226,7 @@
               <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
                            text-[#5D4037]/35 text-[18px]">lock_reset</span>
               <input type="password" name="confirm_password" id="reg-confirm" placeholder="Nhập lại mật khẩu"
-                     required
+                     required autocomplete="new-password"
                      class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
                             pl-9 pr-10 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
               <button type="button" onclick="togglePwd('reg-confirm', this)"
@@ -246,7 +250,7 @@
           </label>
 
           {# Error message #}
-          <div id="reg-error"
+          <div id="register-error"
                class="hidden px-4 py-2.5 bg-red-50 border border-red-200 rounded-sm
                       text-xs text-red-700 font-medium"></div>
 
@@ -272,6 +276,7 @@
               <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
                            text-[#5D4037]/35 text-[18px]">mail</span>
               <input type="email" name="email" placeholder="ten@email.com" required
+                     autocomplete="username"
                      class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
                             pl-9 pr-3.5 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
             </div>
@@ -290,7 +295,7 @@
               <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
                            text-[#5D4037]/35 text-[18px]">lock</span>
               <input type="password" name="password" id="login-password" placeholder="Mật khẩu của bạn"
-                     required
+                     required autocomplete="current-password"
                      class="input-field w-full bg-[#FDFBF7] border border-[#D7CCC8] rounded-sm
                             pl-9 pr-10 py-2.5 text-sm text-[#2D1F1A] placeholder-[#5D4037]/35" />
               <button type="button" onclick="togglePwd('login-password', this)"
@@ -419,9 +424,9 @@ window.handleSubmit = async function (e, type) {
   errEl.classList.add('hidden');
 
   if (type === 'register') {
-    const pwd     = form.password.value;
-    const confirm = form.confirm_password.value;
-    if (pwd !== confirm) {
+    const pwd        = document.getElementById('reg-password').value;
+    const confirmPwd = document.getElementById('reg-confirm').value;
+    if (pwd !== confirmPwd) {
       errEl.textContent = 'Mật khẩu xác nhận không khớp.';
       errEl.classList.remove('hidden');
       return;
@@ -449,7 +454,8 @@ window.handleSubmit = async function (e, type) {
     body.set('display_name', (first + ' ' + last).trim());
   }
   body.set('email',    form.email.value.trim());
-  body.set('password', form.password.value);
+  const pwdId = type === 'register' ? 'reg-password' : 'login-password';
+  body.set('password', document.getElementById(pwdId).value);
 
   try {
     const res  = await fetch(endpoint, { method: 'POST', body, credentials: 'same-origin' });

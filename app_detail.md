@@ -1,139 +1,238 @@
-# Đánh giá chi tiết dự án VICAL AI
-**Ngày:** 2026-05-01
-**Reviewer:** Claude Code
-**Score tổng thể:** 7.5/10
+# Tài liệu kỹ thuật — VICAL AI
+**Cập nhật:** 2026-05-06
+**Phiên bản:** 3.0.0
 
 ---
 
-## Kiến trúc & Thiết kế — 8/10
+## Tổng quan
 
-**Điểm mạnh:**
-- RAG tiên tiến: hybrid retrieval (dense E5 + sparse BM25) kết hợp knowledge graph (LightRAG)
-- Query rewriting: xóa meta-instructions, decompose câu hỏi tổng quan thành sub-queries theo triều đại
-- Parent-child chunking giữ ngữ cảnh tốt hơn flat chunking
-- Separation of concerns: server/ (routes) tách services/ (business logic)
-- Singleton pattern trong shared_engine.py tránh load model nhiều lần
-- Async-first design: toàn bộ pipeline dùng async/await, parallel retrieval với asyncio.gather()
+Vical AI là chatbot lịch sử Việt Nam dùng kiến trúc RAG lai (Hybrid RAG): kết hợp vector search (Qdrant) và knowledge graph (LightRAG) để trả lời câu hỏi có trích dẫn nguồn. Hỗ trợ chat thông thường và nhập vai nhân vật lịch sử (Persona Chat).
 
-**Điểm yếu:**
-- Thiếu abstraction layers: DB logic lẫn trong db.py, không có repository pattern
-- LLM provider hard-coded cho Gemini, khó switch sang OpenAI/Anthropic
-- Config management lộn xộn: env vars đọc trực tiếp, magic numbers không có constants
-- Không có circuit breaker cho external services (Qdrant, Gemini)
-
----
-
-## Bảo mật — 7/10
-
-**Điểm mạnh:**
-- Session: itsdangerous signed tokens, HttpOnly + SameSite=Lax + Secure
-- Password: bcrypt hash
-- OAuth: đúng flow với state CSRF protection
-- Secrets trong .env, không hardcode
-
-**Điểm yếu nghiêm trọng:**
-1. **Authorization bug (CRITICAL):** db.py:281 - get_user_stats() đếm TẤT CẢ conversations của mọi user, không filter theo user_id
-2. **Thiếu user isolation:** conversations không có user_id foreign key, bất kỳ ai cũng xem/xóa conversation của người khác
-3. **Input validation yếu:** không sanitize HTML trong user input (XSS risk), không rate limiting cho /ask endpoint (DoS risk)
+**Stack:**
+- Backend: FastAPI + Uvicorn, Python 3.11
+- DB: SQLite (dev) / PostgreSQL (production via asyncpg)
+- Vector DB: Qdrant (hybrid dense+sparse)
+- Knowledge Graph: LightRAG
+- LLM: Gemini / OpenAI-compatible endpoint (qua `OPENAI_COMPAT_BASE_URL`)
+- Embedding: E5 multilingual dense + BM25 sparse (fastembed)
+- Auth: email/password (bcrypt) + Google OAuth + Facebook OAuth
+- Frontend: Jinja2 templates + Tailwind CSS CDN
+- Deployment: Docker Compose (app + postgres + qdrant + nginx)
 
 ---
 
-## Performance & Scalability — 6.5/10
+## Cấu trúc dự án
 
-**Điểm mạnh:**
-- Async I/O cho endpoints và parallel retrieval
-- Rate limiting cho LLM (AsyncRequestRateLimiter, semaphore)
-- LightRAG có built-in cache cho LLM calls
+```
+app/
+├── server/
+│   ├── main.py              — FastAPI app, lifespan, middleware, router mount
+│   ├── schemas.py           — Pydantic models: AskRequest, AskResponse, SourceItem, PersonaInfo
+│   ├── persona_data.py      — PERSONAS dict, ALL_PERSONA_LIST, BOOKS
+│   ├── routers/
+│   │   ├── pages.py         — HTML page routes (/, /ask, /history, /persona, /timeline, /library)
+│   │   ├── chatbot_api.py   — /ask, /api/ask, /api/ask/stream, /personas, /health, /warmup
+│   │   └── history_api.py   — /api/history/save, /{id}/messages, /{id}/delete
+│   ├── db/
+│   │   ├── connection.py    — init_db(), schema, WAL config, SQLite/PG dual backend
+│   │   ├── conversations.py — save_turn, list_conversations, get_messages, delete_conversation
+│   │   ├── users.py         — CRUD users, bcrypt, OAuth upsert, stats
+│   │   └── timeline.py      — get_dynasties() từ timeline.sqlite3 (JOIN query)
+│   └── auth/
+│       ├── session.py       — itsdangerous serializer, cookie helpers, get_current_user
+│       ├── email_auth.py    — /auth/register, /auth/login, /auth/logout
+│       ├── oauth_google.py  — Google OAuth 2.0
+│       ├── oauth_facebook.py — Facebook OAuth 2.0
+│       └── account.py       — /auth/account page, /auth/account/update
+│
+├── services/chatbot/
+│   ├── shared_engine.py     — init_engine() tại startup, get_engine() singleton, get_persona_engine()
+│   ├── chatbot/
+│   │   └── engine.py        — VietnamHistoryQueryEngine: rewrite → vector+graph → LLM
+│   ├── persona_chat/
+│   │   ├── persona_config.py — PersonaConfig, ALL_PERSONAS, temporal guardrail
+│   │   └── engine.py        — PersonaChatEngine: inject base_engine, persona prompt
+│   └── index_and_retrieve/
+│       ├── config.py        — paths, model names, env resolution helpers
+│       ├── retriever.py     — hybrid search: E5 dense + BM25 sparse, lexical rerank
+│       ├── context_builder.py — format context, build source payload
+│       ├── history_summarizer.py — build_history_block: inject thẳng hoặc tóm tắt bằng LLM
+│       ├── text_utils.py    — lexical scoring, query builder
+│       ├── pipeline.py      — ingest pipeline
+│       └── qdrant_index.py  — index builder
+│
+├── data/
+│   ├── ocr_data/            — raw PDF/text nguồn sử liệu
+│   ├── qdrant_db/           — Qdrant local storage
+│   ├── lightrag_storage/    — LightRAG graph storage
+│   ├── parent_docs.json     — parent chunks (load vào RAM khi startup)
+│   ├── child_docs.json      — child chunks
+│   └── timeline.sqlite3     — seed data triều đại + vua
+│
+data/
+└── seed_timeline.py         — script seed dữ liệu timeline
 
-**Điểm yếu:**
-1. SQLite không scale cho concurrent writes, mỗi request mở connection mới, không có connection pooling
-2. Singleton engine giữ models trong RAM suốt process lifetime, không có LRU cache cho embeddings
-3. N+1 query problem trong db.py:302 get_dynasties() — nên dùng JOIN thay vì loop
-4. Không có response caching — câu hỏi giống nhau vẫn chạy lại toàn bộ pipeline
-5. Parent docstore load toàn bộ vào memory (json.load())
-
----
-
-## Testing & Quality — 4/10
-
-**Vấn đề nghiêm trọng:**
-- 0 unit tests, 0 integration tests, 0 E2E tests
-- Không có pytest.ini, tests/ directory
-- Không có CI/CD: GitHub Actions, pre-commit hooks, linting
-- Không có monitoring: error tracking (Sentry), metrics (Prometheus)
-- Type hints không đầy đủ
-
----
-
-## Code Quality — 7.5/10
-
-**Điểm mạnh:**
-- Docstrings tiếng Việt rõ ràng, comments giải thích WHY
-- Error handling: try-catch với logging, HTTPException đúng status codes, retry logic cho transient errors
-- Naming conventions: consistent snake_case, descriptive variable names
-
-**Điểm yếu:**
-- God objects: VietnamHistoryQueryEngine làm quá nhiều việc, db.py 320 lines với 20+ functions
-- Magic strings: chat_type: str = "ask" nên dùng Enum, persona_slug: str = "" empty string là anti-pattern
-- Inconsistent error messages: một số tiếng Việt, một số tiếng Anh, không có error codes
-
----
-
-## Deployment & Ops — 5/10
-
-**Điểm mạnh:**
-- Docker Compose cho Qdrant với healthcheck, volume persistence
-
-**Điểm yếu:**
-- Không có Dockerfile cho app, nginx reverse proxy, HTTPS setup
-- Không có graceful shutdown
-- SQLite files không được backup, Qdrant data không có snapshot schedule
-- /health endpoint quá đơn giản, không check Qdrant connection, không check LLM availability
-
----
-
-## Khuyến nghị ưu tiên
-
-### CRITICAL — Fix ngay
-
-1. **Fix authorization bug:**
-   ```sql
-   ALTER TABLE conversations ADD COLUMN user_id TEXT REFERENCES users(id);
-   -- Filter theo user trong mọi query
-   ```
-
-2. **Add rate limiting:**
-   ```python
-   from slowapi import Limiter
-   limiter = Limiter(key_func=get_remote_address)
-   @app.post("/ask")
-   @limiter.limit("10/minute")
-   async def ask(...):
-   ```
-
-3. **Input sanitization:**
-   ```python
-   import bleach
-   question = bleach.clean(body.question)
-   ```
-
-### HIGH — Tuần tới
-
-4. **Add tests:** unit tests cho db.py, auth.py; integration tests cho /ask endpoint; target 60% coverage
-5. **Switch to PostgreSQL:** SQLite không production-ready cho concurrent writes, dùng SQLAlchemy ORM
-6. **Add response caching:** LRU cache cho câu hỏi giống nhau với TTL
-
-### MEDIUM — Tháng tới
-
-7. **Refactor engine:** tách retriever, reranker, generator thành classes riêng; dependency injection cho LLM provider
-8. **Add monitoring:** Sentry cho error tracking, Prometheus + Grafana cho metrics
-9. **CI/CD pipeline:** GitHub Actions lint → test → build → deploy, pre-commit hooks: black, ruff, mypy
+docker-compose.yml           — services: app, postgres, qdrant, nginx
+Dockerfile                   — build image cho app service
+nginx.conf                   — reverse proxy config
+requirements.txt
+tests/                       — thư mục tồn tại, chưa có test nào
+pytest.ini
+```
 
 ---
 
-## Roadmap dự kiến
+## Luồng xử lý request chính
 
-- **Sprint 1 (1 tuần):** Fix security bugs + add tests
-- **Sprint 2 (2 tuần):** PostgreSQL migration + caching
-- **Sprint 3 (1 tháng):** Monitoring + CI/CD
-- **Target:** 9/10, sẵn sàng scale lên 1000+ users
+### `/api/ask/stream` (SSE)
+
+```
+Request → get_current_user (cookie) → trial check (session)
+       → get_recent_turns_list (DB)
+       → build_history_block (inject thẳng < 4 lượt, tóm tắt LLM nếu ≥ 4 lượt)
+       → VietnamHistoryQueryEngine.ask_with_sources_stream()
+           ├── rewrite_query (bỏ meta-instruction, xử lý causal)
+           ├── detect_broad_query → decompose nếu cần
+           ├── asyncio.gather(get_vector, get_graph)  [parallel]
+           │   ├── get_vector: E5 dense + BM25 sparse → RRF fusion → lexical rerank
+           │   └── get_graph: LightRAG knowledge graph search
+           ├── build context + sources
+           └── stream LLM response token-by-token (SSE)
+       → client nhận token → POST /api/history/save (lưu DB)
+```
+
+### Persona Chat (`/api/persona-chat/{slug}`)
+
+```
+Request → PersonaChatEngine.ask_with_sources()
+       → check_temporal_guardrail (giới hạn kiến thức theo năm nhân vật)
+       → base_engine.retrieval (dùng chung VietnamHistoryQueryEngine)
+       → inject persona system prompt (nhân cách, era, forbidden_topics)
+       → LLM → response
+```
+
+---
+
+## Database schema
+
+### SQLite / PostgreSQL (dual backend)
+
+```sql
+users (id TEXT PK, email UNIQUE, display_name, avatar_url, password_hash, is_active, created_at, updated_at)
+oauth_accounts (id PK, user_id FK→users CASCADE, provider, provider_user_id UNIQUE(provider,uid), created_at)
+conversations (id TEXT PK, user_id FK→users CASCADE, title, chat_type, persona_slug, message_count, preview, created_at, updated_at)
+messages (id PK, conversation_id FK→conversations CASCADE, role, content, sources_json, created_at)
+```
+
+**Indexes:** `idx_users_email`, `idx_oauth_provider`, `idx_conversations_user`, `idx_conversations_updated`, `idx_messages_conv`
+
+**Lưu ý:** `messages` có `ON DELETE CASCADE` — xóa conversation tự xóa messages, không cần DELETE messages thủ công.
+
+### timeline.sqlite3 (read-only seed)
+
+```sql
+core_dynasty (id, slug, name, start_year, end_year, description, color, order)
+core_king    (id, name, reign_start, reign_end, temple_name, description, dynasty_id, order)
+```
+
+---
+
+## Auth
+
+| Flow | Endpoint | Ghi chú |
+|------|----------|---------|
+| Email register | `POST /auth/register` | bcrypt hash, rate limit 5/min |
+| Email login | `POST /auth/login` | itsdangerous signed cookie, 30 ngày |
+| Logout | `GET/POST /auth/logout` | delete cookie |
+| Google OAuth | `GET /auth/google` → callback | PKCE state CSRF |
+| Facebook OAuth | `GET /auth/facebook` → callback | PKCE state CSRF |
+| Session cookie | `vical_session` | HttpOnly, SameSite=Lax, Secure khi production |
+
+**Trial users:** không đăng nhập được 3 câu hỏi, đếm qua Starlette `SessionMiddleware` (reset được bằng cách xóa cookie — không có rate limit IP).
+
+---
+
+## Cấu hình môi trường (.env)
+
+| Biến | Mô tả | Default |
+|------|-------|---------|
+| `SECRET_KEY` | Session signing key | random (unsafe) |
+| `ENV` | `production` để bật Secure cookie + https_only | `dev` |
+| `ALLOWED_ORIGINS` | CORS origins cách nhau dấu phẩy | `http://localhost:8001` |
+| `DATABASE_URL` | PostgreSQL DSN (nếu có → dùng PG) | — |
+| `POSTGRES_HOST/PORT/DB/USER/PASSWORD` | Thay thế cho DATABASE_URL | localhost/5432/vical/vical |
+| `QDRANT_HOST` | Qdrant server host | `localhost` |
+| `QDRANT_PORT` | Qdrant server port | `6333` |
+| `GEMINI_KEY` / `OPENAI_API_KEY` / `SHOPAIKEY_TOKEN` | LLM API key (ưu tiên theo thứ tự) | — |
+| `OPENAI_COMPAT_BASE_URL` / `SHOPAIKEY_BASE_URL` | Base URL LLM endpoint | Gemini official |
+| `GEMINI_MODEL_NAME` / `SHOPAIKEY_MODEL_NAME` | Tên model | `gemini-3.1-flash-lite` |
+| `GEMINI_RPM_LIMIT` | Rate limit request/phút | tự detect theo model prefix |
+| `GEMINI_MAX_CONCURRENCY` | Concurrency semaphore | `5` |
+| `RETRIEVER_TOP_K` | Số chunks trả về sau rerank | `4` |
+| `RETRIEVER_LIMIT` | Số candidates trước rerank | `40` |
+
+---
+
+## Deployment (Docker Compose)
+
+4 services:
+
+| Service | Image | Port |
+|---------|-------|------|
+| `app` | build từ `Dockerfile` | 8001 (internal) |
+| `postgres` | postgres:16-alpine | internal |
+| `qdrant` | qdrant/qdrant:latest | 6333, 6334 |
+| `nginx` | nginx:alpine | 80 (public) |
+
+`app` depends on `postgres` và `qdrant` healthy. Nginx reverse proxy đến app:8001, serve static files trực tiếp.
+
+---
+
+## Vấn đề kỹ thuật còn tồn tại
+
+### HIGH
+
+1. **`ask_with_sources_stream()` có thể tạo OpenAI client mới mỗi request** (`engine.py`) — cần kiểm tra, nếu còn thì không reuse connection pool, bypass rate limiter của `self.llm`.
+
+2. **`parent_store` load toàn bộ vào RAM** (`engine.py`) — `parent_docs.json` load lúc startup và giữ suốt process. Khi dataset lớn (vài GB) sẽ OOM.
+
+3. **`_warmup_task` accessed từ `main.py`** — `main.py:57` truy cập `engine._warmup_task` (private). Nên expose qua method public `engine.warmup_done()`.
+
+4. **Trial count reset được bằng cách xóa cookie** — Starlette SessionMiddleware, không có IP rate limit. Dễ bypass.
+
+### MEDIUM
+
+5. **`get_persona_engine()` tạo object mới mỗi call** — `PersonaChatEngine` stateless nên không gây lỗi, nhưng không nhất quán intent singleton.
+
+6. **`config.py` tự load .env** (`_load_dotenv()`) — `main.py` đã dùng `python-dotenv`, `session.py` cũng load lại. Ba điểm load dotenv độc lập.
+
+7. **SQLite không có connection pool** — mỗi request tạo connection mới. WAL mode giảm lock contention nhưng concurrent writes vẫn serialize.
+
+8. **`user_id IS NULL` trong conversation queries** — conversations không có owner xem được bởi bất kỳ ai biết `conv_id`. Intentional cho anonymous nhưng chưa documented.
+
+### LOW
+
+9. **Không có CI/CD** — test suite có sẵn nhưng chưa chạy tự động khi push code.
+
+10. **Import bên trong function body** (`persona_chat/engine.py`) — một số import đặt trong `ask_with_sources()` để tránh circular import, nên refactor.
+
+---
+
+## Lịch sử fix đáng chú ý
+
+| Vấn đề | Trạng thái |
+|--------|-----------|
+| Race condition `get_engine()` (lock không dùng) | ✅ Fix: `init_engine()` gọi 1 lần tại startup, `get_engine()` raise nếu chưa init |
+| `https_only=False` hardcoded SessionMiddleware | ✅ Fix: đọc `ENV=production` |
+| CORS `allow_origins=["*"]` | ✅ Fix: đọc `ALLOWED_ORIGINS` từ env |
+| N+1 query `get_dynasties()` | ✅ Fix: dùng LEFT JOIN duy nhất |
+| `color` field bị bỏ sót khi build dynasty dict | ✅ Fix: thêm `"color": r["color"]` |
+| God file `db.py` | ✅ Tách thành `db/connection.py`, `db/users.py`, `db/conversations.py`, `db/timeline.py` |
+| Auth lộn xộn | ✅ Tách thành `auth/session.py`, `auth/email_auth.py`, `auth/oauth_*.py`, `auth/account.py` |
+| Thiếu Pydantic schemas tập trung | ✅ `schemas.py` với `AskRequest`, `AskResponse`, `SourceItem`, `PersonaInfo` |
+| Redundant DELETE messages trong `delete_conversation` | ✅ ON DELETE CASCADE xử lý tự động |
+| `persona_slug: str = ""` sentinel | ✅ Đổi thành `str | None = None` |
+| `chat_type` magic string | ✅ Đổi thành `Literal["ask", "persona"]` |
+| Thiếu Dockerfile + nginx | ✅ Có cả hai |
+| Thiếu PostgreSQL support | ✅ Dual backend SQLite/PG qua asyncpg |
+| Lịch sử hội thoại không có tóm tắt | ✅ `history_summarizer.py`: inject thẳng < 4 lượt, tóm tắt LLM nếu ≥ 4 lượt |

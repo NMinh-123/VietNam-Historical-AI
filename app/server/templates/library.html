@@ -77,18 +77,6 @@
                type="text" />
       </div>
     </div>
-
-    <!-- Right: actions + avatar -->
-    <div class="flex items-center gap-3 flex-shrink-0">
-      <button class="w-9 h-9 flex items-center justify-center text-[#5D4037] hover:bg-[#E7E0D2] transition-all rounded-sm">
-        <span class="material-symbols-outlined">notifications</span>
-      </button>
-      <div class="h-6 w-[1px] bg-[#D7CCC8] mx-1"></div>
-      <img alt="User Portrait"
-           class="w-8 h-8 rounded-sm object-cover border border-[#D7CCC8]"
-           src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVMqjuI9-89-zU77UEv1R845eRoEs6Xrit6-WpXDANcgVqr8qFPsxMgOa7btAXplUUrL7em3Wb3qtB-X40tchCn_rmWlVUryBu-ZJ0d9o1ttkqj5tT0hp96mhkvUa_DFB4QSBAeBuncOSD9Rw2T0KCL4F5D04qUGKCWvDwZ8KVyCgHCVbYMIZbbDTrZwYcD9WNZuNBqnggKfu301R0lQmvPTBjE-ez0lNMkye1K4za54f6tMmIDEw1JLKhcgop6V8ePPmUnqaSuCA" />
-    </div>
-
   </header>
 
   <!-- ═══════════════════════════════════════════
@@ -360,8 +348,7 @@
 (function () {
   "use strict";
 
-  // ─── Book data từ Django (safe JSON, escaped by Django) ─────────────────────
-  const BOOKS = {{ books_json | safe }};
+  const BOOKS = {{ books | tojson }};
 
   // ─── DOM refs ───────────────────────────────────────────────────────────────
   const overlay      = document.getElementById("panel-overlay");
