@@ -36,3 +36,5 @@ asyncpg
 
 # Data ingestion
 pypdf
+
+langchain-google-genai

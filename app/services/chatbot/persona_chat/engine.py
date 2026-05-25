@@ -183,10 +183,15 @@ class PersonaChatEngine:
             f"Trả lời dựa trên {len(sources)} nguồn vector (trung tâm){graph_note}. "
             f"Nhân vật: {persona.display_name}."
         )
+        graph_texts = [
+            b["text"] for b in graph_bundle["items"]
+            if isinstance(b.get("text"), str) and b["text"].strip()
+        ]
         return {
             "answer": answer,
             "sources": sources,
             "verification": verification,
+            "contexts": [item["text"] for item in vector_items if item.get("text")] + graph_texts,
         }
 
     async def ask(self, question: str, persona: PersonaConfig) -> str:

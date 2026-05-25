@@ -16,23 +16,18 @@ E5_PROMPTS = {
     E5_PASSAGE_PROMPT_NAME: "passage: ",
 }
 
-
 @dataclass(slots=True)
 class E5EmbeddingConfig:
     model_name: str = E5_EMBEDDING_MODEL_NAME
     prompt_name: str = E5_PASSAGE_PROMPT_NAME
-    batch_size: int = 32
+    batch_size: int = 32 
     normalize_embeddings: bool = True
     device: str | None = None
 
     @property
-    def embedding_dim(self) -> int:
+    def embedding_dim(seft) -> int:
         return E5_EMBEDDING_DIM
-
-
 class E5EmbeddingModel:
-    """Wrapper nhỏ cho multilingual-e5-small với prompt chuẩn query/passage."""
-
     def __init__(self, config: E5EmbeddingConfig | None = None):
         self.config = config or E5EmbeddingConfig()
         self.model = SentenceTransformer(
@@ -45,16 +40,15 @@ class E5EmbeddingModel:
     @property
     def embedding_dim(self) -> int:
         return self.config.embedding_dim
-
     def embed(self, texts: list[str]) -> np.ndarray:
         if not texts:
             return np.empty((0, self.embedding_dim), dtype=np.float32)
-
+    
         encoded = self.model.encode(
             texts,
             prompt_name=self.config.prompt_name,
             batch_size=self.config.batch_size,
-            show_progress_bar=False,
+            show_progress_bar=True,
             convert_to_numpy=True,
             normalize_embeddings=self.config.normalize_embeddings,
         )

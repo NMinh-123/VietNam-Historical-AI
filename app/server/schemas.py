@@ -9,6 +9,7 @@ class AskRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=1000)
     persona_slug: str | None = Field(default=None)
     conversation_id: str | None = Field(default=None)
+    include_contexts: bool = Field(default=False)
 
 
 class SourceItem(BaseModel):
@@ -28,6 +29,7 @@ class AskResponse(BaseModel):
     verification: str | None = None
     persona_slug: str | None = None
     trial_remaining: int | None = None
+    contexts: list[str] | None = None
 
 
 class PersonaInfo(BaseModel):

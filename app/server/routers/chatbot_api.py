@@ -88,6 +88,7 @@ async def ask(request: Request, body: AskRequest) -> AskResponse:
         verification=result.get("verification"),
         persona_slug=slug_used,
         trial_remaining=trial_remaining,
+        contexts=result.get("contexts") if body.include_contexts else None,
     )
 
 

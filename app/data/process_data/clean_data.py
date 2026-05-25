@@ -1,15 +1,14 @@
-import re #Regular Expression
+import re 
 import unicodedata
 
 def clean_text(text):
     if not text:
-        return ""
-    # Chuẩn hoá Unicode về dạng dựng sẵn NFC
+        return "" 
+    #Chuẩn hoá Unicode về dạng dựng sẵn NFC
     text = unicodedata.normalize('NFC', text)
-    # Xử lý ngắt dòng và nối từ bị tách bởi dấu gạch nối cuối dòng
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
-    text = re.sub(r"(?<=\w)-\n(?=\w)", "", text)   
-    # Gom khoảng trắng dư thừa (trừ xuống dòng)
+    #Xử lý ngắt dòng
+    text = text.replace("\r\n", "\n").replace("\n","\r")
+    #Gom khoảng trắng dư thừa
     text = re.sub(r"[^\S\n]+", " ", text)
 
     cleaned_lines = []
@@ -22,7 +21,7 @@ def clean_text(text):
         #   \s  : khoảng trắng
         #   Dấu câu cơ bản: .,;:!?%()/\"'
         #   Dấu ngoặc: []()
-        #   Dấu gạch ngang và gạch nối: -–—  (quan trọng trong văn bản lịch sử)
+        #   Dấu gạch ngang và gạch nối
         #   Tiếng Việt: À-ỹ
         line = re.sub(r"[^\w\s.,;:!?%()\[\]/\"'\-–—À-ỹ]", "", line)
 
@@ -34,17 +33,15 @@ def clean_text(text):
 
     cleaned_text = "\n".join(cleaned_lines)
     cleaned_text = re.sub(r"\n{3,}", "\n\n", cleaned_text)
-
+    
     return cleaned_text.strip()
-
-
 def clean_documents(documents):
     cleaned_docs = []
 
     for doc in documents:
         cleaned_text = clean_text(doc.page_content)
 
-        if cleaned_text:  # bỏ trang rỗng
+        if cleaned_text: 
             doc.page_content = cleaned_text
             cleaned_docs.append(doc)
 

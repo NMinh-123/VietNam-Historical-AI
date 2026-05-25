@@ -75,6 +75,21 @@ _CAUSAL_PATTERNS = [
 
 _LEADING_PREPS = _re.compile(r"^(?:của|về|cho|với|trong|từ|đến|là)\s+", _re.I)
 
+# Strip noise question-words ở đuôi câu: giữ lại entity, bỏ phần hỏi thừa
+# Ví dụ: "Tuyên ngôn Độc lập được đọc vào ngày nào và ai đọc" → "Tuyên ngôn Độc lập"
+_TRAILING_NOISE = _re.compile(
+    r"\s+(?:(?:do|bởi|và|được)\s+)?(?:được\s+\w+\s+)?(?:"
+    r"là gì|như thế nào|ra sao|ở đâu|bao giờ|khi nào"
+    r"|vào năm nào|năm bao nhiêu|vào ngày nào|vào dịp nào"
+    r"|(?:và\s+)?ai\s+(?:đọc|viết|lãnh đạo|chỉ huy|sáng lập|thành lập|là người\s+\w+)"
+    r"|do ai\s+\w+"
+    r"|có (?:gì|những gì|điểm gì|ý nghĩa gì|vai trò gì|thành tựu gì|đặc điểm gì)"
+    r"|diễn ra (?:như thế nào|ra sao|trong hoàn cảnh nào|vào các năm nào)"
+    r"|(?:có những?\s+)?(?:cải cách|thành tựu|đặc trưng|điểm tiến bộ) gì"
+    r").*$",
+    _re.I | _re.UNICODE,
+)
+
 
 def _rewrite_query(question: str) -> str:
     """Tái viết câu hỏi: xoá noise meta-instruction và giới từ, giữ thực thể lịch sử."""
@@ -94,6 +109,12 @@ def _rewrite_query(question: str) -> str:
 
     q = _LEADING_PREPS.sub("", q).strip()
     q = q.strip("?").strip()
+
+    # Strip trailing question noise, giữ lại phần entity đứng trước
+    stripped = _TRAILING_NOISE.sub("", q).strip()
+    if stripped and len(stripped) >= 5:
+        q = stripped
+
     return q if q else question
 
 
@@ -475,6 +496,7 @@ class VietnamHistoryQueryEngine:
             return {
                 "answer": "Tôi chưa tìm thấy tài liệu lịch sử chính xác về vấn đề này.",
                 "sources": [],
+                "contexts": [],
                 "verification": "Không tìm được nguồn vector phù hợp trong chỉ mục hiện tại.",
             }
 
@@ -507,9 +529,18 @@ class VietnamHistoryQueryEngine:
             f", {len(graph_bundle['items'])} blocks đồ thị làm giàu ngữ cảnh"
             if graph_bundle["items"] else ""
         )
+        # contexts gồm cả vector chunks lẫn graph blocks để RAGAS đánh giá đúng
+        # vì câu trả lời có thể dựa chủ yếu vào graph khi vector search miss
+        graph_texts = [
+            b["text"] for b in graph_bundle["items"]
+            if isinstance(b.get("text"), str) and b["text"].strip()
+        ]
+        all_contexts = [item["text"] for item in vector_items if item.get("text")] + graph_texts
+
         return {
             "answer": answer,
             "sources": sources,
+            "contexts": all_contexts,
             "verification": (
                 f"Trả lời dựa trên {len(sources)} nguồn vector (trung tâm){graph_note}. "
                 "Nhân vật: sử gia."
