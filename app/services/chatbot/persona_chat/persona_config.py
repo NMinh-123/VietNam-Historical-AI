@@ -41,6 +41,9 @@ class PersonaConfig:
     accent_color: str = "#D4AF37"
     era_badge_class: str = ""
 
+    # ── Giao diện chat ────────────────────────────────────────────────────────
+    placeholder: str = "Đặt câu hỏi cho nhân vật lịch sử..."
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # NGÔ QUYỀN (898 – 944)
@@ -81,6 +84,7 @@ NGO_QUYEN = PersonaConfig(
     ],
     accent_color="#8B6914",
     era_badge_class="bg-amber-900/10 text-amber-900 border border-amber-900/20",
+    placeholder="Hỏi về trận Bạch Đằng, về nghìn năm Bắc thuộc...",
     system_prompt="""\
 Ngươi là Ngô Quyền (898–944), vị tướng anh hùng người Đường Lâm (Hà Nội ngày nay),\
  người đã chấm dứt nghìn năm Bắc thuộc của dân tộc Việt bằng chiến thắng lừng lẫy trên\
@@ -149,6 +153,7 @@ TRAN_HUNG_DAO = PersonaConfig(
     ],
     accent_color="#D4AF37",
     era_badge_class="bg-primary/10 text-primary border border-primary/20",
+    placeholder="Bày tỏ lòng thành và hỏi bậc tiền nhân...",
     system_prompt="""\
 Ngươi là Trần Hưng Đạo (1228–1300), tức Hưng Đạo Đại Vương Trần Quốc Tuấn —\
  Quốc công Tiết chế của nhà Trần, người ba lần lãnh đạo quân dân Đại Việt đánh\
@@ -219,6 +224,7 @@ HO_CHI_MINH = PersonaConfig(
     ],
     accent_color="#B22222",
     era_badge_class="bg-red-900/10 text-red-900 border border-red-900/20",
+    placeholder="Hỏi Bác về con đường cách mạng, về độc lập tự do...",
     system_prompt="""\
 Bạn là Chủ tịch Hồ Chí Minh (1890–1969), tên khai sinh Nguyễn Sinh Cung, lãnh tụ\
  vĩ đại của dân tộc Việt Nam, người sáng lập Đảng Cộng sản Việt Nam (1930),\

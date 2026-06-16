@@ -71,7 +71,7 @@ async def google_callback(request: Request) -> RedirectResponse:
             client_secret=_GOOGLE_CLIENT_SECRET,
             redirect_uri=_callback_url(request, "google"),
         ) as client:
-            token = await client.fetch_token(_GOOGLE_CONF["token_endpoint"], code=code)
+            await client.fetch_token(_GOOGLE_CONF["token_endpoint"], code=code)
             resp_info = await client.get(_GOOGLE_CONF["userinfo_endpoint"])
             info: dict[str, Any] = resp_info.json()
     except Exception as exc:

@@ -2,31 +2,26 @@
 
 from __future__ import annotations
 
-import json
-
 from fastembed import SparseTextEmbedding
 from langchain_core.documents import Document
 from qdrant_client import QdrantClient
 
-from data.process_data.clean_data import clean_documents
-from data.process_data.e5_embeddings import (
+from src.chunking.chunker import clean_documents, build_parent_child_chunks, save_documents
+from src.embeddings.embedder import (
     E5EmbeddingConfig,
     E5EmbeddingModel,
     E5_PASSAGE_PROMPT_NAME,
 )
-from data.process_data.load_data import load_pdfs_from_folder
-from data.process_data.splitter import (
-    build_parent_child_chunks,
-    save_documents,
-    save_parent_documents,
-)
+from src.ingestion.loader import load_pdfs_from_folder
 from .config import (
     CHILD_DOCSTORE_PATH,
     COLLECTION_NAME,
     DENSE_MODEL_NAME,
     GEMINI_OPENAI_BASE_URL,
     LIGHTRAG_WORKSPACE,
-    PARENT_DOCSTORE_PATH,
+    PARENT_COLLECTION_NAME,
+    QDRANT_HOST,
+    QDRANT_PORT,
     RAW_DATA_PATH,
     SPARSE_MODEL_NAME,
     _require_gemini_key,
@@ -41,8 +36,8 @@ from .config import (
 )
 from .ingest_support import _apply_test_mode_subset, _validate_paths
 from .lightrag_index import build_lightrag_instance, ingest_to_lightrag
-from .providers import _build_gemini_llm_func
-from .qdrant_index import ingest_to_qdrant
+from src.llm.llm_client import build_llm_func as _build_gemini_llm_func
+from src.vectordb.vector_store import ingest_to_qdrant, ingest_parents_to_qdrant
 
 
 def _load_and_chunk_docs(
@@ -74,24 +69,42 @@ def _load_and_chunk_docs(
     return parent_docs, child_chunks, parent_store
 
 
-def _load_parent_docs_from_disk() -> list[Document]:
-    """Đọc lại parent docs đã lưu từ parent_docs.json để LightRAG không cần load PDF lại."""
-    if not PARENT_DOCSTORE_PATH.exists():
-        raise FileNotFoundError(
-            f"Không tìm thấy {PARENT_DOCSTORE_PATH}. "
-            "Hãy chạy run_qdrant_index.py trước để tạo file này."
+def _load_parent_docs_from_qdrant(
+    qdrant_host: str = QDRANT_HOST,
+    qdrant_port: int = QDRANT_PORT,
+) -> list[Document]:
+    """Đọc lại parent docs từ Qdrant để LightRAG không cần load PDF lại."""
+    client = QdrantClient(host=qdrant_host, port=qdrant_port)
+    if not client.collection_exists(PARENT_COLLECTION_NAME):
+        raise RuntimeError(
+            f"Collection '{PARENT_COLLECTION_NAME}' chưa tồn tại. "
+            "Hãy chạy run_qdrant_index.py trước."
         )
-    with open(PARENT_DOCSTORE_PATH, "r", encoding="utf-8") as f:
-        parent_store: dict[str, str] = json.load(f)
 
-    docs = [
-        Document(
-            page_content=text,
-            metadata={"doc_id": parent_id, "parent_id": parent_id},
+    docs: list[Document] = []
+    offset = None
+    while True:
+        results, next_offset = client.scroll(
+            collection_name=PARENT_COLLECTION_NAME,
+            limit=1000,
+            offset=offset,
+            with_payload=True,
+            with_vectors=False,
         )
-        for parent_id, text in parent_store.items()
-    ]
-    print(f"Đọc lại {len(docs)} parent docs từ {PARENT_DOCSTORE_PATH}")
+        for point in results:
+            payload = point.payload or {}
+            parent_id = payload.get("parent_id", "")
+            content = payload.get("content", "")
+            if content:
+                docs.append(Document(
+                    page_content=content,
+                    metadata={"doc_id": parent_id, "parent_id": parent_id},
+                ))
+        if next_offset is None:
+            break
+        offset = next_offset
+
+    print(f"Đọc lại {len(docs)} parent docs từ Qdrant ({PARENT_COLLECTION_NAME})")
     return docs
 
 
@@ -122,15 +135,23 @@ async def qdrant_ingest(
         dense_model, test_mode, parent_limit
     )
 
-    save_parent_documents(parent_store, str(PARENT_DOCSTORE_PATH))
     save_documents(child_chunks, str(CHILD_DOCSTORE_PATH))
-    print(f"Đã lưu {len(parent_docs)} parent docs → {PARENT_DOCSTORE_PATH}")
     print(f"Đã lưu {len(child_chunks)} child chunks → {CHILD_DOCSTORE_PATH}")
+
+    qdrant_client = QdrantClient(host=qdrant_host, port=qdrant_port)
+
+    print(f"\nĐANG NẠP {len(parent_docs)} PARENT DOCS VÀO QDRANT...")
+    await ingest_parents_to_qdrant(
+        parent_store=parent_store,
+        qdrant_client=qdrant_client,
+        collection_name=PARENT_COLLECTION_NAME,
+        recreate_collection=recreate_collection,
+    )
 
     print(f"\nĐANG NẠP {len(child_chunks)} CHILD CHUNKS VÀO QDRANT...")
     await ingest_to_qdrant(
         child_chunks=child_chunks,
-        qdrant_client=QdrantClient(host=qdrant_host, port=qdrant_port),
+        qdrant_client=qdrant_client,
         collection_name=collection_name,
         dense_model=dense_model,
         sparse_model=sparse_model,
@@ -153,6 +174,8 @@ async def lightrag_ingest(
     lightrag_max_parallel_insert: int | None = None,
     resume_existing_queue: bool | None = None,
     use_saved_docs: bool = True,
+    qdrant_host: str = QDRANT_HOST,
+    qdrant_port: int = QDRANT_PORT,
 ) -> None:
     """Nạp dữ liệu vào LightRAG để xây dựng knowledge graph."""
     print("=" * 60)
@@ -199,7 +222,7 @@ async def lightrag_ingest(
     )
 
     if use_saved_docs:
-        parent_docs = _load_parent_docs_from_disk()
+        parent_docs = _load_parent_docs_from_qdrant(qdrant_host, qdrant_port)
         if test_mode:
             parent_docs = parent_docs[:parent_limit]
             print(f"TEST MODE: Giới hạn còn {len(parent_docs)} parent docs")

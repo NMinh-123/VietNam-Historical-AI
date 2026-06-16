@@ -17,6 +17,7 @@ pydantic
 
 # Environment
 python-dotenv
+PyYAML
 
 # RAG & LLM
 lightrag-hku

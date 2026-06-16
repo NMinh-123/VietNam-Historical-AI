@@ -10,13 +10,14 @@ from uuid import UUID
 
 from qdrant_client import QdrantClient, models
 
-from data.process_data.e5_embeddings import E5_EMBEDDING_DIM
+from src.embeddings.embedder import E5_EMBEDDING_DIM
 from .config import (
     LIGHTRAG_INGEST_MANIFEST_PATH,
     LIGHTRAG_WORKSPACE,
     PARENT_DOCSTORE_PATH,
     QDRANT_DB_PATH,
     RAW_DATA_PATH,
+    PARENT_COLLECTION_NAME,
 )
 from .runtime import DocStatus, compute_mdhash_id, sanitize_text_for_encoding
 
@@ -74,6 +75,25 @@ def _prepare_qdrant_collection(
         },
         sparse_vectors_config={"sparse": models.SparseVectorParams()},
     )
+
+
+def _ensure_parent_collection(
+    client: QdrantClient,
+    collection_name: str = PARENT_COLLECTION_NAME,
+    recreate: bool = False,
+) -> str:
+    """Tạo collection payload-only cho parent docs (không cần vector)."""
+    exists = client.collection_exists(collection_name)
+    if exists and recreate:
+        client.delete_collection(collection_name)
+        exists = False
+    if not exists:
+        client.create_collection(
+            collection_name=collection_name,
+            vectors_config={},
+        )
+        return "recreated" if recreate else "created"
+    return "reused"
 
 
 def _ensure_qdrant_collection(
@@ -306,15 +326,16 @@ __all__ = [
     "_build_qdrant_point_id",
     "_build_parent_ingest_records",
     "_chunk_records",
+    "_ensure_parent_collection",
     "_ensure_qdrant_collection",
     "_fetch_doc_statuses",
     "_get_status_attr",
     "_load_ingest_manifest",
     "_mark_manifest_record",
     "_normalize_doc_status_value",
+    "_normalize_file_path",
     "_prepare_qdrant_collection",
     "_resume_existing_pipeline_if_needed",
     "_save_ingest_manifest",
     "_validate_paths",
-    "_normalize_file_path",
 ]

@@ -32,14 +32,19 @@ SESSION_MAX_AGE = 60 * 60 * 24 * 30  # 30 ngày
 
 
 def create_session_token(user_id: str) -> str:
-    return _signer.dumps({"uid": user_id})
+    sid = secrets.token_urlsafe(16)
+    return _signer.dumps({"uid": user_id, "sid": sid})
 
 
-def decode_session_token(token: str, max_age: int = SESSION_MAX_AGE) -> str | None:
-    """Trả user_id nếu token hợp lệ, None nếu hết hạn hoặc bị giả mạo."""
+def decode_session_token(token: str, max_age: int = SESSION_MAX_AGE) -> tuple[str, str | None] | None:
+    """Trả (user_id, sid) nếu token hợp lệ, None nếu hết hạn hoặc bị giả mạo.
+    sid là None với token cũ không có session ID."""
     try:
         data = _signer.loads(token, max_age=max_age)
-        return data.get("uid")
+        uid = data.get("uid")
+        if not uid:
+            return None
+        return uid, data.get("sid")
     except (SignatureExpired, BadSignature):
         return None
 
@@ -48,8 +53,11 @@ async def get_current_user(request: Request) -> dict | None:
     token = request.cookies.get(SESSION_COOKIE)
     if not token:
         return None
-    user_id = decode_session_token(token)
-    if not user_id:
+    result = decode_session_token(token)
+    if not result:
+        return None
+    user_id, sid = result
+    if sid and await _db.is_session_revoked(sid):
         return None
     return await _db.get_user_by_id(user_id)
 

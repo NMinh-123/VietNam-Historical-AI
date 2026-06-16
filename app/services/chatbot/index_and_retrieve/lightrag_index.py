@@ -5,9 +5,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-import numpy as np
-
-from data.process_data.e5_embeddings import (
+from src.embeddings.embedder import (
     E5_EMBEDDING_DIM,
     E5_MAX_LENGTH,
     E5EmbeddingModel,
@@ -33,7 +31,7 @@ def build_lightrag_instance(
     max_parallel_insert: int,
 ) -> LightRAG:
     """Khởi tạo LightRAG với embedding adapter chạy trên thread riêng để không block event loop."""
-    async def _embed_func(texts: list[str]) -> np.ndarray:
+    async def _embed_func(texts: list[str]):
         # Dùng asyncio.to_thread vì dense_model.embed là hàm đồng bộ chạy trên CPU
         return await asyncio.to_thread(dense_model.embed, texts)
 

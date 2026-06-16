@@ -11,6 +11,7 @@ from .config import (
     GEMINI_OPENAI_BASE_URL,
     LIGHTRAG_INGEST_MANIFEST_PATH,
     LIGHTRAG_WORKSPACE,
+    PARENT_COLLECTION_NAME,
     PARENT_DOCSTORE_PATH,
     QDRANT_DB_PATH,
     QDRANT_HOST,
@@ -38,11 +39,11 @@ from .runtime import (
     openai_complete_if_cache,
     sanitize_text_for_encoding,
 )
-from .providers import (
+from src.llm.llm_client import (
     AsyncRequestRateLimiter,
-    _build_gemini_llm_func,
-    _extract_exception_status_code,
-    _is_retryable_gemini_exception,
+    build_llm_func as _build_gemini_llm_func,
+    _extract_status_code as _extract_exception_status_code,
+    _is_retryable as _is_retryable_gemini_exception,
 )
 from .ingest_support import (
     _apply_test_mode_subset,
@@ -59,14 +60,15 @@ from .ingest_support import (
     _validate_paths,
 )
 from .pipeline import hybrid_ingest, qdrant_ingest, lightrag_ingest
-from .retriever import get_vector
-from .context_builder import (
-    _build_source_payload,
-    _coerce_text,
-    _format_context_items,
-    _split_blocks,
+from src.retrieval.retriever import retrieve as get_vector
+from src.utils.helpers import (
+    build_source_payload as _build_source_payload,
+    coerce_text as _coerce_text,
+    format_context_items as _format_context_items,
+    split_blocks as _split_blocks,
+    _lexical_score,
+    build_query,
 )
-from .text_utils import _lexical_score, build_query
 
 __all__ = [
     # config
@@ -80,6 +82,7 @@ __all__ = [
     "GEMINI_OPENAI_BASE_URL",
     "LIGHTRAG_INGEST_MANIFEST_PATH",
     "LIGHTRAG_WORKSPACE",
+    "PARENT_COLLECTION_NAME",
     "PARENT_DOCSTORE_PATH",
     "QDRANT_DB_PATH",
     "QDRANT_HOST",

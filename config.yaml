@@ -1,0 +1,56 @@
+# Vical AI — Vietnam History Chatbot Configuration
+# Cấu hình chính cho toàn bộ RAG pipeline
+
+model:
+  embedding:
+    name: "intfloat/multilingual-e5-small"
+    sparse: "Qdrant/bm25"
+    dim: 384
+    max_length: 512
+  llm:
+    default: "gemini-3.1-flash-lite"
+    shopaikey_default: "claude-haiku-4-5"
+
+retrieval:
+  top_k: 4
+  limit: 40
+  broad_top_k: 12
+  broad_graph_top_k: 20
+  fused_weight: 0.7
+  lexical_weight: 0.3
+  count_bonus: 0.2
+  max_chunks_per_parent: 2
+  topic_shift_threshold: 0.12
+
+chunking:
+  parent_chunk_size: 2000
+  parent_chunk_overlap: 400
+  child_chunk_size: 600
+  child_chunk_overlap: 200
+  similarity_threshold: 0.45
+  embed_batch_size: 128
+
+vectordb:
+  collection_name: "vietnam_history_hybrid"
+  parent_collection_name: "vietnam_history_parent"
+  batch_size: 256
+  host: "localhost"
+  port: 6333
+
+llm_provider:
+  requests_per_minute: 200
+  max_concurrency: 5
+  max_retries: 4
+  retry_delays: [15, 30, 60, 120]
+  retryable_status_codes: [429, 500, 502, 503, 504]
+
+history:
+  summarize_threshold: 4
+  recency_turns: 2
+
+data:
+  raw_data_path: "app/data/ocr_data"
+  lightrag_workspace: "app/data/lightrag_storage"
+  qdrant_db_path: "app/data/qdrant_db"
+  parent_docstore: "app/data/parent_docs.json"
+  ingest_manifest: "app/data/lightrag_ingest_manifest.json"

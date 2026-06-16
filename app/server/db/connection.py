@@ -27,11 +27,11 @@ def _pg_dsn() -> str:
     dsn = os.getenv("DATABASE_URL")
     if dsn:
         return dsn
-    host = os.getenv("POSTGRES_HOST", "localhost")
-    port = os.getenv("POSTGRES_PORT", "5432")
-    db   = os.getenv("POSTGRES_DB", "vical")
-    user = os.getenv("POSTGRES_USER", "vical")
-    pw   = os.getenv("POSTGRES_PASSWORD", "vical")
+    host = os.getenv("POSTGRES_HOST") or "localhost"
+    port = os.getenv("POSTGRES_PORT") or "5432"
+    db   = os.getenv("POSTGRES_DB") or "vical"
+    user = os.getenv("POSTGRES_USER") or "vical"
+    pw   = os.getenv("POSTGRES_PASSWORD") or "vical"
     return f"postgresql://{user}:{pw}@{host}:{port}/{db}"
 
 
@@ -130,6 +130,11 @@ _SCHEMA_SQLITE = """
         created_at      TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id);
+    CREATE TABLE IF NOT EXISTS revoked_sessions (
+        sid        TEXT PRIMARY KEY,
+        revoked_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_revoked_sessions_at ON revoked_sessions(revoked_at);
 """
 
 _SCHEMA_PG = """
@@ -175,6 +180,11 @@ _SCHEMA_PG = """
         created_at      TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversation_id);
+    CREATE TABLE IF NOT EXISTS revoked_sessions (
+        sid        TEXT PRIMARY KEY,
+        revoked_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_revoked_sessions_at ON revoked_sessions(revoked_at);
 """
 
 
@@ -189,6 +199,13 @@ def _sqlite_migrate(conn: sqlite3.Connection) -> None:
     if "user_id" not in cols:
         conn.execute("ALTER TABLE conversations ADD COLUMN user_id TEXT REFERENCES users(id) ON DELETE CASCADE")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_conversations_user ON conversations(user_id)")
+
+    tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+    if "revoked_sessions" not in tables:
+        conn.execute(
+            "CREATE TABLE revoked_sessions (sid TEXT PRIMARY KEY, revoked_at TEXT NOT NULL)"
+        )
+        conn.execute("CREATE INDEX idx_revoked_sessions_at ON revoked_sessions(revoked_at)")
 
     oauth_cols = [r[1] for r in conn.execute("PRAGMA table_info(oauth_accounts)").fetchall()]
     if "access_token" in oauth_cols:

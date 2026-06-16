@@ -69,7 +69,7 @@ async def facebook_callback(request: Request) -> RedirectResponse:
             client_secret=_FACEBOOK_CLIENT_SECRET,
             redirect_uri=_callback_url(request, "facebook"),
         ) as client:
-            token = await client.fetch_token(_FACEBOOK_CONF["token_endpoint"], code=code)
+            await client.fetch_token(_FACEBOOK_CONF["token_endpoint"], code=code)
             resp_info = await client.get(_FACEBOOK_CONF["userinfo_endpoint"])
             info: dict[str, Any] = resp_info.json()
     except Exception as exc:

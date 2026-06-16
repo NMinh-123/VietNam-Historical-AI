@@ -30,7 +30,10 @@ class TestSessionToken:
     def test_create_and_decode_roundtrip(self):
         from auth.session import create_session_token, decode_session_token
         token = create_session_token("user-123")
-        assert decode_session_token(token) == "user-123"
+        result = decode_session_token(token)
+        assert result is not None
+        assert result[0] == "user-123"
+        assert result[1] is not None  # sid phải có
 
     def test_tampered_token_returns_none(self):
         from auth.session import create_session_token, decode_session_token
@@ -66,36 +69,36 @@ class TestSessionToken:
 
 
 class TestGetCurrentUser:
-    def test_returns_none_when_no_cookie(self, tmp_db):
+    async def test_returns_none_when_no_cookie(self, tmp_db):
         from auth.session import get_current_user, SESSION_COOKIE
         request = MagicMock()
         request.cookies = {}
-        assert get_current_user(request) is None
+        assert await get_current_user(request) is None
 
-    def test_returns_none_for_invalid_token(self, tmp_db):
+    async def test_returns_none_for_invalid_token(self, tmp_db):
         from auth.session import get_current_user, SESSION_COOKIE
         request = MagicMock()
         request.cookies = {SESSION_COOKIE: "invalid.token.value"}
-        assert get_current_user(request) is None
+        assert await get_current_user(request) is None
 
-    def test_returns_user_for_valid_token(self, tmp_db):
+    async def test_returns_user_for_valid_token(self, tmp_db):
         import db as _db
         from auth.session import create_session_token, get_current_user, SESSION_COOKIE
-        user = _db.create_user(email="sess@test.com", display_name="Session User")
+        user = await _db.create_user(email="sess@test.com", display_name="Session User")
         token = create_session_token(user["id"])
         request = MagicMock()
         request.cookies = {SESSION_COOKIE: token}
-        result = get_current_user(request)
+        result = await get_current_user(request)
         assert result is not None
         assert result["id"] == user["id"]
 
-    def test_returns_none_for_deleted_user(self, tmp_db):
+    async def test_returns_none_for_deleted_user(self, tmp_db):
         """Token valid nhưng user đã xóa khỏi DB."""
         from auth.session import create_session_token, get_current_user, SESSION_COOKIE
         token = create_session_token("deleted-user-id")
         request = MagicMock()
         request.cookies = {SESSION_COOKIE: token}
-        assert get_current_user(request) is None
+        assert await get_current_user(request) is None
 
 
 class TestCallbackUrl:

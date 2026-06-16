@@ -2,77 +2,33 @@
 
 from __future__ import annotations
 
+from app.services.chatbot.persona_chat.persona_config import ALL_PERSONAS
+
+# Portrait URLs dùng ảnh local static thay vì Wikipedia
+_PORTRAIT_URLS: dict[str, str] = {
+    "ngo-quyen": "/static/images/avatars/ngo_quyen.jpg",
+    "tran-hung-dao": "/static/images/avatars/tran_hung_dao.jpg",
+    "ho-chi-minh": "/static/images/avatars/ho_chi_minh.jpg",
+}
+
 PERSONAS: dict[str, dict] = {
-    "ngo-quyen": {
-        "slug": "ngo-quyen",
-        "display_name": "Ngô Quyền",
-        "title": "Vị tướng khai quốc",
-        "era_label": "Thế kỷ X (898 – 944)",
-        "bio_short": (
-            "Người chấm dứt nghìn năm Bắc thuộc, giành độc lập dân tộc bằng "
-            "chiến thắng Bạch Đằng năm 938 trước quân Nam Hán."
-        ),
-        "portrait_url": "/static/images/avatars/ngo_quyen.jpg",
-        "greeting_quote": (
-            "\"Bạch Đằng giang — nơi ta lấy cọc nhọn làm kế, nhấn chìm hải thuyền giặc Nam Hán. "
-            "Nước Việt từ đây thoát khỏi ngàn năm lệ thuộc. "
-            "Ngươi muốn hỏi ta điều gì về thuở khai quốc ấy?\""
-        ),
-        "greeting_sub": "Hỏi ta về chiến lược, về thuở dựng nền độc lập.",
-        "typing_label": "Ngô Quyền đang hồi tưởng...",
-        "speaker_label": "Ngô Quyền",
-        "accent_color": "#8B6914",
-        "era_badge_class": "bg-amber-900/10 text-amber-900 border border-amber-900/20",
-        "knowledge_cutoff_year": 944,
-        "placeholder": "Hỏi về trận Bạch Đằng, về nghìn năm Bắc thuộc...",
-    },
-    "tran-hung-dao": {
-        "slug": "tran-hung-dao",
-        "display_name": "Trần Hưng Đạo",
-        "title": "Hưng Đạo Đại Vương",
-        "era_label": "Thời Trần (Thế kỷ XIII)",
-        "bio_short": (
-            "Quốc công Tiết chế, anh hùng dân tộc với ba lần chiến thắng quân Nguyên Mông "
-            "lừng lẫy địa cầu."
-        ),
-        "portrait_url": "/static/images/avatars/tran_hung_dao.jpg",
-        "greeting_quote": (
-            "\"Ta thường tới bữa quên ăn, nửa đêm vỗ gối; ruột đau như cắt, nước mắt đầm đìa; "
-            "chỉ căm tức chưa xả thịt lột da, nuốt gan uống máu quân thù. "
-            "Dẫu cho trăm thân này phơi ngoài nội cỏ, nghìn xác này gói trong da ngựa, ta cũng vui lòng.\""
-        ),
-        "greeting_sub": "Hậu thế hỏi ta về kế sách giữ nước, ta sẵn lòng đàm đạo.",
-        "typing_label": "Đại Vương đang suy ngẫm...",
-        "speaker_label": "Hưng Đạo Đại Vương",
-        "accent_color": "#D4AF37",
-        "era_badge_class": "bg-primary/10 text-primary border border-primary/20",
-        "knowledge_cutoff_year": 1300,
-        "placeholder": "Bày tỏ lòng thành và hỏi bậc tiền nhân...",
-    },
-    "ho-chi-minh": {
-        "slug": "ho-chi-minh",
-        "display_name": "Hồ Chí Minh",
-        "title": "Chủ tịch Hồ Chí Minh",
-        "era_label": "Thế kỷ XX (1890 – 1969)",
-        "bio_short": (
-            "Lãnh tụ cách mạng, người khai sinh nước Việt Nam Dân chủ Cộng hòa, "
-            "dẫn dắt dân tộc qua hai cuộc kháng chiến trường kỳ."
-        ),
-        "portrait_url": "/static/images/avatars/ho_chi_minh.jpg",
-        "greeting_quote": (
-            "\"Không có gì quý hơn độc lập, tự do. "
-            "Tôi chỉ có một sự ham muốn, ham muốn tột bậc, là làm sao cho nước ta "
-            "được hoàn toàn độc lập, dân ta được hoàn toàn tự do, đồng bào ai cũng "
-            "có cơm ăn áo mặc, ai cũng được học hành.\""
-        ),
-        "greeting_sub": "Đồng bào hỏi Bác về con đường cách mạng, Bác sẵn lòng chia sẻ.",
-        "typing_label": "Bác đang suy nghĩ...",
-        "speaker_label": "Chủ tịch Hồ Chí Minh",
-        "accent_color": "#B22222",
-        "era_badge_class": "bg-red-900/10 text-red-900 border border-red-900/20",
-        "knowledge_cutoff_year": 1969,
-        "placeholder": "Hỏi Bác về con đường cách mạng, về độc lập tự do...",
-    },
+    p.slug: {
+        "slug": p.slug,
+        "display_name": p.display_name,
+        "title": p.title,
+        "era_label": p.era_label,
+        "bio_short": p.bio_short,
+        "portrait_url": _PORTRAIT_URLS.get(p.slug, p.portrait_url),
+        "greeting_quote": p.greeting_quote,
+        "greeting_sub": p.greeting_sub,
+        "typing_label": p.typing_label,
+        "speaker_label": p.speaker_label,
+        "accent_color": p.accent_color,
+        "era_badge_class": p.era_badge_class,
+        "knowledge_cutoff_year": p.knowledge_cutoff_year,
+        "placeholder": p.placeholder,
+    }
+    for p in ALL_PERSONAS
 }
 
 ALL_PERSONA_LIST: list[dict] = list(PERSONAS.values())

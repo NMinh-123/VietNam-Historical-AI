@@ -18,6 +18,9 @@ from db.users import (
     update_user_profile,
     get_user_stats,
     get_oauth_providers,
+    revoke_session,
+    is_session_revoked,
+    cleanup_revoked_sessions,
 )
 from db.timeline import get_dynasties
 
@@ -37,5 +40,8 @@ __all__ = [
     "update_user_profile",
     "get_user_stats",
     "get_oauth_providers",
+    "revoke_session",
+    "is_session_revoked",
+    "cleanup_revoked_sessions",
     "get_dynasties",
 ]

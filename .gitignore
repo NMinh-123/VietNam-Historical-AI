@@ -1,20 +1,9 @@
 # ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.so
-*.egg
-*.egg-info/
-dist/
-build/
-.eggs/
+.pytest_cache/
 
 # ── Virtual environments ──────────────────────────────────────────────────────
 .venv_Vical/
-venv/
-.venv/
-env/
 
 # ── Secrets ───────────────────────────────────────────────────────────────────
 .env
@@ -22,13 +11,11 @@ env/
 !.env.example
 
 # ── IDE & OS ──────────────────────────────────────────────────────────────────
-.DS_Store
 .vscode/
-.idea/
-*.swp
-*.swo
+.DS_Store
+**/.DS_Store
 
-# ── Claude ───────────────────────────────────────────────────────────────────
+# ── Claude Code ───────────────────────────────────────────────────────────────
 .claude/
 
 # ── Vector DB & AI storage (binary, rất lớn) ─────────────────────────────────
@@ -37,7 +24,7 @@ env/
 **/lightrag_storage/
 **/ocr_data/
 
-# ── Database runtime (tự tạo lại được) ───────────────────────────────────────
+# ── Database runtime ──────────────────────────────────────────────────────────
 app/server/db.sqlite3
 
 # ── Generated data ────────────────────────────────────────────────────────────
@@ -47,12 +34,11 @@ app/data/chunk_id_registry.json
 app/data/lightrag_ingest_manifest.json
 
 # ── Test output ───────────────────────────────────────────────────────────────
-data/test_reports/
+tests/reports/
 
-# ── Misc ─────────────────────────────────────────────────────────────────────
+# ── Misc ──────────────────────────────────────────────────────────────────────
 *.log
 logs/
-node_modules/
 cookies.txt
 FIX_CHATBOT.md
 fix_db.md

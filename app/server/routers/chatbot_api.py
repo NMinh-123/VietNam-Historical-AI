@@ -12,7 +12,7 @@ from auth import get_current_user
 from schemas import AskRequest, AskResponse, PersonaInfo, SourceItem
 from services.chatbot.shared_engine import get_engine, get_persona_engine
 from services.chatbot.persona_chat import get_persona, ALL_PERSONAS
-from services.chatbot.index_and_retrieve.history_summarizer import build_history_block
+from src.utils.helpers import build_history_block
 
 _logger = logging.getLogger(__name__)
 
@@ -147,7 +147,6 @@ async def ask_stream(request: Request, body: AskRequest) -> StreamingResponse:
                 ):
                     yield f"data: {_json.dumps(event, ensure_ascii=False)}\n\n"
         except Exception as exc:
-            import json as _json
             yield f"data: {_json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
 
     return StreamingResponse(

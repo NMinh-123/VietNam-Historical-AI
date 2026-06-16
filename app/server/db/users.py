@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import asyncio
 import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import bcrypt as _bcrypt
 
 from db.connection import _now, _use_postgres, get_pool, get_sqlite_conn
+
+_SESSION_MAX_AGE = 60 * 60 * 24 * 30  # 30 ngày — phải khớp với session.py
 
 
 async def get_user_by_email(email: str) -> dict | None:
@@ -149,6 +152,43 @@ async def get_user_stats(user_id: str) -> dict[str, int]:
                 (user_id,),
             ).fetchone()[0]
     return {"conversations": conv_count, "messages": msg_count}
+
+
+async def revoke_session(sid: str) -> None:
+    now = _now()
+    if _use_postgres():
+        async with get_pool().acquire() as conn:
+            await conn.execute(
+                "INSERT INTO revoked_sessions(sid, revoked_at) VALUES($1, $2) ON CONFLICT DO NOTHING",
+                sid, now,
+            )
+    else:
+        with get_sqlite_conn() as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO revoked_sessions(sid, revoked_at) VALUES(?, ?)",
+                (sid, now),
+            )
+
+
+async def is_session_revoked(sid: str) -> bool:
+    if _use_postgres():
+        async with get_pool().acquire() as conn:
+            row = await conn.fetchrow("SELECT 1 FROM revoked_sessions WHERE sid=$1", sid)
+        return row is not None
+    with get_sqlite_conn() as conn:
+        row = conn.execute("SELECT 1 FROM revoked_sessions WHERE sid=?", (sid,)).fetchone()
+    return row is not None
+
+
+async def cleanup_revoked_sessions() -> None:
+    """Xóa các session đã revoke và đã hết hạn (không còn valid nữa)."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(seconds=_SESSION_MAX_AGE)).isoformat()
+    if _use_postgres():
+        async with get_pool().acquire() as conn:
+            await conn.execute("DELETE FROM revoked_sessions WHERE revoked_at < $1", cutoff)
+    else:
+        with get_sqlite_conn() as conn:
+            conn.execute("DELETE FROM revoked_sessions WHERE revoked_at < ?", (cutoff,))
 
 
 async def get_oauth_providers(user_id: str) -> list[str]:

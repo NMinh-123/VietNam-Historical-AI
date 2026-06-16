@@ -1,14 +1,15 @@
 # VICAL — Vietnam Historical AI
 
 <p align="center">
-  <b>AI-powered historical assistant for Vietnamese history</b><br/>
-  Hybrid RAG + Knowledge Graph + Persona Chat System
+  <b>AI-powered chatbot specialized in Vietnamese history</b><br/>
+  Hybrid RAG · Knowledge Graph · Persona Chat · Streaming SSE
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-blue" />
   <img src="https://img.shields.io/badge/FastAPI-0.104+-green" />
-  <img src="https://img.shields.io/badge/Qdrant-Vector%20Database-red" />
+  <img src="https://img.shields.io/badge/Qdrant-1.17.1-red" />
+  <img src="https://img.shields.io/badge/LightRAG-Knowledge%20Graph-purple" />
   <img src="https://img.shields.io/badge/License-MIT-yellow" />
 </p>
 
@@ -16,165 +17,86 @@
 
 ## Overview
 
-**VICAL (Vietnam Historical AI)** is an AI chatbot system focused on Vietnamese history.
-The project combines **Hybrid Retrieval-Augmented Generation (Hybrid RAG)**, **Knowledge Graph reasoning**, and **historical persona simulation** to provide accurate, contextual, and explainable answers.
+**VICAL** is an AI chatbot system focused on Vietnamese history. It combines **Hybrid Retrieval-Augmented Generation**, **Knowledge Graph reasoning**, and **historical persona simulation** to deliver accurate, source-grounded, and explainable answers.
 
-Users can:
-
-* Ask questions about Vietnamese history
-* Chat with historical figures such as Ngô Quyền or Trần Hưng Đạo
-* Receive source-grounded responses with streaming output
-* Explore dynasty timelines and historical conversations
-
-This project was built to explore:
-
-* Production-ready RAG architecture
-* Retrieval optimization
-* Knowledge Graph integration
-* Real-time AI streaming systems
-* Multi-provider authentication
+**Users can:**
+- Ask questions about Vietnamese history and receive cited, source-grounded answers
+- Have live conversations with historical figures such as Ngô Quyền and Trần Hưng Đạo
+- Explore Vietnamese dynasty timelines and historical events
+- Save and revisit conversation history
 
 ---
 
-# Demo Features
+## System Architecture
 
-## Historical Question Answering
-
-* Hybrid retrieval pipeline:
-
-  * Dense Retrieval (E5 multilingual embeddings)
-  * Sparse Retrieval (BM25)
-  * Reciprocal Rank Fusion (RRF)
-  * Lexical reranking
-* Source-grounded answers
-* Streaming Server-Sent Events (SSE)
-
-## Persona Chat System
-
-* Interactive conversations with historical figures
-* Temporal guardrails to prevent timeline inconsistencies
-* Persona-specific prompts and speaking styles
-
-## Authentication System
-
-* Email/password login
-* Google OAuth
-* Facebook OAuth
-* Conversation history persistence
-
-## Timeline Exploration
-
-* Vietnamese dynasty timeline
-* Historical rulers and events lookup
-
----
-
-# System Architecture
-
-```text
-Client
-   │
-   ▼
-FastAPI Application
-   │
-   ├── Authentication Layer
-   │      ├── Email Authentication
-   │      ├── Google OAuth
-   │      └── Facebook OAuth
-   │
-   ├── Query Rewriter
-   │
-   ├── Hybrid Retrieval Pipeline
-   │      ├── Dense Search (E5 Embeddings)
-   │      ├── Sparse Search (BM25)
-   │      ├── Reciprocal Rank Fusion
-   │      └── Lexical Reranking
-   │
-   ├── LightRAG Knowledge Graph
-   │
-   └── LLM Response Generation
-          └── Streaming SSE Response
+```
+Client (Browser)
+       │
+       ▼
+  Nginx Reverse Proxy
+       │
+       ▼
+  FastAPI Application (port 8001)
+       │
+       ├── Authentication Layer
+       │      ├── Email / Password (bcrypt)
+       │      ├── Google OAuth 2.0
+       │      └── Facebook OAuth
+       │
+       ├── Query Rewriter
+       │
+       ├── Hybrid Retrieval Pipeline
+       │      ├── Dense Search  — Multilingual-E5 Embeddings
+       │      ├── Sparse Search — BM25 (fastembed)
+       │      ├── Reciprocal Rank Fusion (RRF)
+       │      └── Lexical Reranking
+       │
+       ├── LightRAG Knowledge Graph
+       │
+       └── LLM (Google Gemini) → Streaming SSE Response
 ```
 
 ---
 
-# Tech Stack
+## Tech Stack
 
-| Layer           | Technologies                                     |
-| --------------- | ------------------------------------------------ |
-| Backend         | FastAPI, Uvicorn                                 |
-| LLM Integration | Google Gemini (OpenAI-compatible API)            |
-| Vector Database | Qdrant                                           |
-| Embeddings      | multilingual-e5, BM25                            |
-| Knowledge Graph | LightRAG                                         |
-| Database        | SQLite (Development), PostgreSQL 16 (Production) |
-| Authentication  | authlib, bcrypt, itsdangerous                    |
-| Frontend        | HTML, CSS, JavaScript, Jinja2                    |
-| Deployment      | Docker, Docker Compose, Nginx                    |
-| Testing         | pytest                                           |
-
----
-
-# Key Engineering Highlights
-
-## Hybrid Retrieval Strategy
-
-The retrieval pipeline combines:
-
-* Semantic similarity search using multilingual E5 embeddings
-* Sparse keyword retrieval using BM25
-* Reciprocal Rank Fusion (RRF)
-* Lexical reranking for final context refinement
-
-This improves retrieval robustness compared to standalone vector search.
-
-## Knowledge Graph Integration
-
-The system integrates LightRAG to:
-
-* Connect historical entities
-* Improve multi-hop reasoning
-* Reduce hallucination in long historical contexts
-
-## Streaming AI Responses
-
-Responses are streamed token-by-token using SSE, improving:
-
-* User experience
-* Perceived latency
-* Real-time interaction quality
-
-## Persona Safety Guardrails
-
-Historical persona chat includes:
-
-* Temporal consistency constraints
-* Character-aware prompting
-* Context filtering to avoid anachronisms
+| Layer | Technology |
+|---|---|
+| Backend | FastAPI, Uvicorn, Python 3.11 |
+| LLM | Google Gemini (OpenAI-compatible API) |
+| Vector Database | Qdrant v1.17.1 |
+| Embeddings | multilingual-E5 (dense), BM25 via fastembed (sparse) |
+| Knowledge Graph | LightRAG |
+| Relational DB | SQLite (development) / PostgreSQL 16 (production) |
+| Authentication | authlib, bcrypt, itsdangerous |
+| Frontend | Jinja2, Tailwind CSS, Vanilla JavaScript |
+| Deployment | Docker, Docker Compose, Nginx Alpine |
+| Testing | pytest |
+| Rate Limiting | slowapi |
 
 ---
 
-# Project Structure
+## Project Structure
 
-```text
+```
 VietNam-Historical-AI/
-│
 ├── app/
 │   ├── server/
-│   │   ├── routers/
-│   │   ├── auth/
-│   │   ├── db/
-│   │   └── persona_data.py
+│   │   ├── routers/           # API route handlers
+│   │   ├── auth/              # Authentication & OAuth
+│   │   ├── db/                # Database models & queries
+│   │   └── persona_data.py    # Historical persona definitions
 │   │
 │   ├── services/chatbot/
-│   │   ├── chatbot/
-│   │   ├── persona_chat/
-│   │   └── index_and_retrieve/
+│   │   ├── chatbot/           # RAG pipeline & LLM integration
+│   │   ├── persona_chat/      # Persona simulation engine
+│   │   └── index_and_retrieve/  # Indexing scripts
 │   │
-│   ├── data/
-│   └── static/
+│   ├── data/                  # Documents, vector storage
+│   └── static/                # Frontend assets & Jinja2 templates
 │
-├── tests/
+├── data/                      # Seed data, avatar images, timeline DB
+├── tests/                     # pytest test suite
 ├── docker-compose.yml
 ├── Dockerfile
 ├── nginx.conf
@@ -183,32 +105,30 @@ VietNam-Historical-AI/
 
 ---
 
-# Local Development Setup
+## Local Development Setup
 
-## 1. Clone Repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/NMinh-123/VietNam-Historical-AI.git
 cd VietNam-Historical-AI
 ```
 
----
-
-## 2. Create Environment Variables
+### 2. Configure environment variables
 
 ```bash
 cp .env.example .env
 ```
 
-Required environment variables:
+Fill in the required variables:
 
 ```env
 # LLM
 GEMINI_KEY=your_api_key
-GEMINI_MODEL_NAME=gemini-3-flash-preview
+GEMINI_MODEL_NAME=gemini-2.0-flash
 OPENAI_COMPAT_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
 
-# Authentication
+# Application
 SECRET_KEY=your_secret_key
 ENV=dev
 REDIRECT_BASE_URL=http://localhost:8001
@@ -223,7 +143,7 @@ FACEBOOK_APP_SECRET=
 QDRANT_HOST=localhost
 QDRANT_PORT=6333
 
-# PostgreSQL
+# PostgreSQL (production only)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=vical
@@ -231,26 +151,20 @@ POSTGRES_USER=vical
 POSTGRES_PASSWORD=your_password
 ```
 
----
-
-## 3. Create Virtual Environment
+### 3. Create a virtual environment
 
 ```bash
 python3.11 -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 ```
 
----
-
-## 4. Install Dependencies
+### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-## 5. Start Qdrant
+### 5. Start Qdrant
 
 ```bash
 docker run -p 6333:6333 -p 6334:6334 \
@@ -258,142 +172,111 @@ docker run -p 6333:6333 -p 6334:6334 \
   qdrant/qdrant
 ```
 
----
-
-## 6. Build Retrieval Index
+### 6. Build retrieval indexes
 
 ```bash
 python app/services/chatbot/index_and_retrieve/run_qdrant_index.py
 python app/services/chatbot/index_and_retrieve/run_lightrag_index.py
 ```
 
----
-
-## 7. Seed Timeline Database
+### 7. Seed the timeline database
 
 ```bash
 python data/seed_timeline.py
 ```
 
----
-
-## 8. Run Application
+### 8. Run the application
 
 ```bash
 cd app
 uvicorn server.main:app --reload --host 0.0.0.0 --port 8001
 ```
 
-Application URL:
-
-```text
-http://localhost:8001
-```
+Open: **http://localhost:8001**
 
 ---
 
-# Docker Deployment
-
-## Start Services
+## Docker Deployment
 
 ```bash
+# Start all services (app, postgres, qdrant, nginx)
 docker-compose up -d
-```
 
-## View Logs
-
-```bash
+# View logs
 docker-compose logs -f app
-```
 
-## Stop Services
-
-```bash
+# Stop
 docker-compose down
 ```
 
----
+**Services:**
 
-# API Endpoints
-
-| Method | Endpoint                     | Description                   |
-| ------ | ---------------------------- | ----------------------------- |
-| POST   | `/api/ask`                   | Standard chatbot response     |
-| POST   | `/api/ask/stream`            | Streaming chatbot response    |
-| GET    | `/api/history/{id}/messages` | Retrieve conversation history |
-| POST   | `/api/history/save`          | Save conversation             |
+| Service | Image | Port |
+|---|---|---|
+| app | Dockerfile (Python 3.11) | 8001 (internal) |
+| postgres | postgres:16-alpine | 5432 (internal) |
+| qdrant | qdrant/qdrant:v1.17.1 | 6333 HTTP, 6334 gRPC |
+| nginx | nginx:alpine | 80 (public) |
 
 ---
 
-# Testing
+## API Endpoints
 
-Run all tests:
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Health check |
+| `POST` | `/ask` | Historical Q&A with cited sources |
+| `POST` | `/api/ask/stream` | Streaming SSE response |
+| `POST` | `/api/persona-chat/{slug}` | Chat with a historical figure |
+| `GET` | `/api/history/{id}/messages` | Retrieve conversation history |
+| `POST` | `/api/history/save` | Save a conversation |
+
+---
+
+## Testing
 
 ```bash
+# Run all tests
 pytest tests/ -v
-```
 
-Run with coverage:
-
-```bash
+# Run with coverage report
 pytest tests/ --cov=app --cov-report=html
 ```
 
 ---
 
-# Engineering Challenges Solved
+## Engineering Highlights
 
-## Retrieval Noise Reduction
+**Hybrid Retrieval** — Dense search (E5 embeddings) + sparse search (BM25) combined via RRF fusion and lexical reranking. Significantly improves retrieval precision over standalone vector search.
 
-Implemented:
+**Knowledge Graph** — LightRAG connects historical entities to support multi-hop reasoning and reduce hallucination in long historical contexts.
 
-* Hybrid dense + sparse retrieval
-* RRF fusion
-* Lexical reranking
+**Persona Guardrails** — Temporal consistency constraints prevent historical figures from referencing events outside their own era, avoiding anachronisms.
 
-to improve retrieval precision and reduce irrelevant context.
-
-## Hallucination Mitigation
-
-Combined:
-
-* Source-grounded retrieval
-* Knowledge Graph augmentation
-* Persona guardrails
-
-to improve factual consistency.
-
-## Real-time Streaming Architecture
-
-Used SSE streaming to support:
-
-* Progressive token rendering
-* Lower perceived latency
-* Better conversational UX
+**Streaming SSE** — Responses are streamed token-by-token, reducing perceived latency and improving conversational UX.
 
 ---
 
-# Future Improvements
+## Roadmap
 
-* Redis caching layer
-* Cross-encoder reranking
-* Citation highlighting UI
-* Multi-agent retrieval orchestration
-* Fine-tuned Vietnamese embedding models
-* Observability with Prometheus + Grafana
+- Redis caching layer
+- Cross-encoder reranking
+- Citation highlighting in the UI
+- Multi-agent retrieval orchestration
+- Fine-tuned Vietnamese embedding models
+- Observability with Prometheus + Grafana
 
 ---
 
-# Author
+## Author
 
 **Hoang Minh**
-
-* GitHub: [https://github.com/NMinh-123](https://github.com/NMinh-123)
-* Project Repository: [https://github.com/NMinh-123/VietNam-Historical-AI](https://github.com/NMinh-123/VietNam-Historical-AI)
-* Email: [minh40009@gmail.com](mailto:minh40009@gmail.com)
+- GitHub: [NMinh-123](https://github.com/NMinh-123)
+- Email: [minh40009@gmail.com](mailto:minh40009@gmail.com)
+- Repository: [VietNam-Historical-AI](https://github.com/NMinh-123/VietNam-Historical-AI)
 
 ---
 
-# License
+## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).

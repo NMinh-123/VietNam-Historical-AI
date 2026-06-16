@@ -3,10 +3,19 @@
 from __future__ import annotations
 
 import os
-import re
 from pathlib import Path
 
-from data.process_data.e5_embeddings import E5_EMBEDDING_MODEL_NAME
+from src.app_config import get_config as _get_config
+from src.embeddings.embedder import E5_EMBEDDING_MODEL_NAME
+from src.llm.llm_client import (
+    LLM_BASE_URL as GEMINI_OPENAI_BASE_URL,
+    RPM_BY_MODEL_PREFIX,
+    _is_shopaikey as _is_shopaikey_base_url,
+    require_api_key as _require_api_key_base,
+    resolve_model_name as _resolve_model_name_base,
+)
+
+_cfg = _get_config()
 
 # Load .env từ gốc dự án (nếu có) — không ghi đè biến đã tồn tại trong shell
 def _load_dotenv() -> None:
@@ -37,47 +46,21 @@ LIGHTRAG_INGEST_MANIFEST_PATH = DATA_DIR / "lightrag_ingest_manifest.json"
 PARENT_DOCSTORE_PATH = DATA_DIR / "parent_docs.json"
 CHILD_DOCSTORE_PATH = DATA_DIR / "child_docs.json"
 
-COLLECTION_NAME = "vietnam_history_hybrid"
+COLLECTION_NAME = _cfg.vectordb.collection_name
+PARENT_COLLECTION_NAME = _cfg.vectordb.parent_collection_name
 DENSE_MODEL_NAME = E5_EMBEDDING_MODEL_NAME
-SPARSE_MODEL_NAME = "Qdrant/bm25"
+SPARSE_MODEL_NAME = _cfg.model.embedding.sparse
 
-# Qdrant server — đọc từ env để dùng được cả Docker lẫn local
-QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
-QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
-DEFAULT_GEMINI_MODEL_NAME = "gemini-3.1-flash-lite"
-RPM_BY_MODEL_PREFIX = {
-    "gemini-2.5-pro": 200,
-    "gpt-5.4-mini": 200,
-    "gpt-5-mini": 200,
-}
-DEFAULT_GEMINI_MAX_CONCURRENCY = 5
-DEFAULT_GEMINI_TRANSIENT_MAX_RETRIES = 4
-GEMINI_RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
-GEMINI_TRANSIENT_RETRY_DELAYS_SECONDS = (15.0, 30.0, 60.0, 120.0)
+# Qdrant server — env var переопределяет config.yaml для Docker/prod
+QDRANT_HOST = os.getenv("QDRANT_HOST") or _cfg.vectordb.host
+QDRANT_PORT = int(os.getenv("QDRANT_PORT") or _cfg.vectordb.port)
+DEFAULT_GEMINI_MODEL_NAME = _cfg.model.llm.default
+DEFAULT_GEMINI_MAX_CONCURRENCY = _cfg.llm_provider.max_concurrency
+DEFAULT_GEMINI_TRANSIENT_MAX_RETRIES = _cfg.llm_provider.max_retries
 DEFAULT_LIGHTRAG_BATCH_SIZE = 20
 DEFAULT_LIGHTRAG_MAX_PARALLEL_INSERT = 20
-DEFAULT_QDRANT_BATCH_SIZE = 256
-DEFAULT_SHOPAIKEY_MODEL_NAME = "claude-haiku-4-5"
-
-
-def _normalize_openai_compatible_base_url(base_url: str) -> str:
-    normalized = (base_url or "").strip().rstrip("/")
-    if normalized.endswith("/chat/completions"):
-        normalized = normalized[: -len("/chat/completions")]
-    if normalized and not re.search(r"/v\d+$", normalized) and not normalized.endswith("/openai"):
-        normalized = f"{normalized}/v1"
-    return normalized
-
-
-def _is_shopaikey_base_url(base_url: str) -> bool:
-    return "api.shopaikey.com" in (base_url or "").lower()
-
-
-GEMINI_OPENAI_BASE_URL = _normalize_openai_compatible_base_url(
-    os.getenv("OPENAI_COMPAT_BASE_URL")
-    or os.getenv("SHOPAIKEY_BASE_URL")
-    or "https://generativelanguage.googleapis.com/v1beta/openai/"
-)
+DEFAULT_QDRANT_BATCH_SIZE = _cfg.vectordb.batch_size
+DEFAULT_SHOPAIKEY_MODEL_NAME = _cfg.model.llm.shopaikey_default
 
 
 def _read_env_flag(name: str, default: bool) -> bool:
@@ -102,38 +85,13 @@ def _read_env_str(name: str) -> str | None:
 
 
 def _require_gemini_key(gemini_key: str | None = None) -> str:
-    key = (
-        gemini_key
-        or os.getenv("GEMINI_KEY")
-        or os.getenv("OPENAI_API_KEY")
-        or os.getenv("SHOPAIKEY_TOKEN")
-        or os.getenv("SHOPAIKEY_API_KEY")
-    )
-    if not key:
-        raise ValueError(
-            "KHÔNG TÌM THẤY API token trong môi trường. "
-            "Hãy đặt GEMINI_KEY, OPENAI_API_KEY hoặc SHOPAIKEY_TOKEN."
-        )
-    return key
+    if gemini_key:
+        return gemini_key
+    return _require_api_key_base()
 
 
-def _resolve_gemini_model_name(
-    gemini_model_name: str | None = None,
-) -> str:
-    resolved_model_name = (
-        gemini_model_name
-        or _read_env_str("LIGHTRAG_MODEL_NAME")
-        or _read_env_str("SHOPAIKEY_MODEL_NAME")
-        or _read_env_str("GEMINI_MODEL_NAME")
-        or _read_env_str("OPENAI_MODEL")
-    )
-
-    if not resolved_model_name:
-        if _is_shopaikey_base_url(GEMINI_OPENAI_BASE_URL):
-            return DEFAULT_SHOPAIKEY_MODEL_NAME
-        return DEFAULT_GEMINI_MODEL_NAME
-
-    return resolved_model_name
+def _resolve_gemini_model_name(gemini_model_name: str | None = None) -> str:
+    return _resolve_model_name_base(gemini_model_name)
 
 
 def _resolve_gemini_rpm_limit(
@@ -220,10 +178,9 @@ __all__ = [
     "DEFAULT_QDRANT_BATCH_SIZE",
     "DENSE_MODEL_NAME",
     "GEMINI_OPENAI_BASE_URL",
-    "GEMINI_RETRYABLE_STATUS_CODES",
-    "GEMINI_TRANSIENT_RETRY_DELAYS_SECONDS",
     "LIGHTRAG_INGEST_MANIFEST_PATH",
     "LIGHTRAG_WORKSPACE",
+    "PARENT_COLLECTION_NAME",
     "PARENT_DOCSTORE_PATH",
     "QDRANT_DB_PATH",
     "QDRANT_HOST",

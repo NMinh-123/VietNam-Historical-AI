@@ -6,51 +6,31 @@ vector search và knowledge graph mà không khởi tạo thêm model.
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from services.chatbot.chatbot.engine import VietnamHistoryQueryEngine
 
 from .persona_config import PersonaConfig, check_temporal_guardrail
+from src.prompts.prompt_templates import (
+    PERSONA_PROMPT as _PERSONA_PROMPT_TEMPLATE,
+    rewrite_query as _rewrite_query,
+    is_broad_query as _is_broad_query,
+    decompose_broad_query as _decompose_broad_query,
+    parse_graph as _parse_graph,
+    build_retrieval_query as _build_retrieval_query,
+    BROAD_TOP_K as _BROAD_TOP_K,
+    BROAD_GRAPH_TOP_K as _BROAD_GRAPH_TOP_K,
+)
+from src.utils.helpers import (
+    build_source_payload as _build_source_payload,
+    format_context_items as _format_context_items,
+)
 
 _logger = logging.getLogger(__name__)
-
-# ── Prompt template Persona — PE-B (phân lớp tri thức nền + sử liệu cụ thể) ──
-_PERSONA_PROMPT_TEMPLATE = """\
-{system_prompt}
-
-▌TRI THỨC NỀN (đồ thị tri thức — dùng để định hướng câu chuyện)
-
-[THỰC_THỂ]
-{entities}
-
-[QUAN_HỆ]
-{relations}
-
-▌SỬ LIỆU CỤ THỂ (văn bản gốc)
-{vector_context}
-
-━━━ QUY TẮC KHI TRẢ LỜI ━━━
-
-1. NHẬP VAI HOÀN TOÀN:
-   - Trả lời với tư cách là {display_name}, không phá vỡ nhân vật.
-   - Dùng đúng xưng hô và ngữ điệu đã quy định trong phần mô tả nhân vật trên.
-   - Gắn kết câu trả lời với trải nghiệm, ký ức cá nhân của nhân vật khi có thể.
-
-2. GIỚI HẠN THỜI GIAN (BẮT BUỘC):
-   - Kiến thức giới hạn đến năm {knowledge_cutoff_year}.
-   - Nếu câu hỏi nhắc đến sự kiện/công nghệ/người sau năm {knowledge_cutoff_year}, hãy thừa nhận điều đó vượt khỏi thời đại của mình.
-
-3. PHONG CÁCH HÀNH VĂN:
-   - Viết thành đoạn văn liền mạch, có hồn, mang dấu ấn cá nhân của nhân vật.
-   - Hạn chế gạch đầu dòng — thay bằng ngôn ngữ kể chuyện tự nhiên.
-   - Không bịa đặt sự kiện ngoài sử liệu — nếu chưa đủ thông tin, hãy nói thật với người hỏi.
-   - Tuyệt đối không thêm [nguon=#] hay bất kỳ nhãn trích dẫn nào vào câu trả lời.
-
-{history_block}Câu hỏi: {question}
-Câu trả lời của {display_name}:
-"""
 
 
 class PersonaChatEngine:
@@ -88,24 +68,6 @@ class PersonaChatEngine:
             }
 
         # Bước 1: Retrieval — tái dùng hoàn toàn từ base engine
-        from services.chatbot.index_and_retrieve.context_builder import (
-            _build_source_payload,
-            _format_context_items,
-            _coerce_text,
-            _split_blocks,
-        )
-        from services.chatbot.chatbot.engine import (
-            _rewrite_query,
-            _is_broad_query,
-            _decompose_broad_query,
-            _parse_graph,
-            _build_retrieval_query,
-            _BROAD_TOP_K,
-            _BROAD_GRAPH_TOP_K,
-        )
-        import asyncio
-        import time
-
         t0 = time.monotonic()
         turns = turns or []
 

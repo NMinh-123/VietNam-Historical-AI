@@ -11,7 +11,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 import db as _db
-from auth.session import _set_session_cookie, _clear_session_cookie
+from auth.session import SESSION_COOKIE, _set_session_cookie, _clear_session_cookie, decode_session_token
 
 _limiter = Limiter(key_func=get_remote_address)
 
@@ -69,7 +69,14 @@ async def login_email(
 
 @router.post("/auth/logout")
 @router.get("/auth/logout")
-async def logout() -> RedirectResponse:
+async def logout(request: Request) -> RedirectResponse:
+    token = request.cookies.get(SESSION_COOKIE)
+    if token:
+        result = decode_session_token(token)
+        if result:
+            _, sid = result
+            if sid:
+                await _db.revoke_session(sid)
     resp = RedirectResponse(url="/", status_code=302)
     _clear_session_cookie(resp)
     return resp
