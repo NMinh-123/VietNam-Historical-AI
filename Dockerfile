@@ -10,11 +10,13 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
-COPY src/ ./src/
+COPY static/ ./static/
+COPY templates/ ./templates/
 COPY data/ ./data/
+COPY scripts/ ./scripts/
 COPY main.py config.yaml ./
 
-ENV PYTHONPATH=/app:/app/app
+ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8001

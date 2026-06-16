@@ -44,7 +44,7 @@ class TestHealth:
         assert body["qdrant_ok"] is True
         assert body["models_loaded"]["dense"] is True
         assert body["models_loaded"]["sparse"] is True
-        from src.app_config import get_config
+        from app.core.app_config import get_config
         _vdb = get_config().vectordb
         assert _vdb.collection_name in body["qdrant_collections"]
         assert _vdb.parent_collection_name in body["qdrant_collections"]
@@ -285,7 +285,7 @@ class TestQueryPreprocessing:
     """Test các hàm xử lý query không cần LLM."""
 
     def test_rewrite_strips_meta_instruction(self):
-        from src.prompts.prompt_templates import rewrite_query
+        from app.core.prompts.prompt_templates import rewrite_query
         cases = [
             ("hãy giải thích về nhà Trần", "nhà Trần"),
             ("tóm tắt lịch sử nhà Lý", "lịch sử nhà Lý"),
@@ -298,21 +298,21 @@ class TestQueryPreprocessing:
                 f"rewrite_query('{original}') = '{result}', expected to contain '{expected_contains}'"
 
     def test_broad_query_detection(self):
-        from src.prompts.prompt_templates import is_broad_query
+        from app.core.prompts.prompt_templates import is_broad_query
         assert is_broad_query("tổng quan lịch sử việt nam")
         assert is_broad_query("tóm tắt các triều đại phong kiến")
         assert not is_broad_query("Trần Hưng Đạo sinh năm nào?")
         assert not is_broad_query("Trận Bạch Đằng năm 938")
 
     def test_decompose_broad_query_covers_dynasties(self):
-        from src.prompts.prompt_templates import decompose_broad_query, DYNASTIES
+        from app.core.prompts.prompt_templates import decompose_broad_query, DYNASTIES
         sub_queries = decompose_broad_query("lịch sử các triều đại")
         assert len(sub_queries) == len(DYNASTIES)
         for q in sub_queries:
             assert isinstance(q, str) and len(q) > 5
 
     def test_topic_shift_detection(self):
-        from src.prompts.prompt_templates import detect_topic_shift
+        from app.core.prompts.prompt_templates import detect_topic_shift
         # turns phải dùng format {role, content} như get_recent_turns_list trả về
         turns_ngo_quyen = [
             {"role": "user", "content": "Ngô Quyền là ai?"},
@@ -324,7 +324,7 @@ class TestQueryPreprocessing:
         assert detect_topic_shift("chiến thuật của Ngô Quyền", turns_ngo_quyen) is False
 
     def test_build_retrieval_query_uses_window_context(self):
-        from src.prompts.prompt_templates import build_retrieval_query
+        from app.core.prompts.prompt_templates import build_retrieval_query
         # turns phải dùng format {role, content}
         turns = [
             {"role": "user", "content": "Ngô Quyền là ai?"},
@@ -335,7 +335,7 @@ class TestQueryPreprocessing:
         assert "ngô quyền" in query.lower() or len(query) > len("Ông ấy sinh năm nào?")
 
     def test_lexical_score_ranking(self):
-        from src.utils.helpers import _lexical_score
+        from app.core.utils.helpers import _lexical_score
         # _lexical_score chỉ match từng token đơn (không phải phrases)
         # nên keywords phải là list các từ đơn
         keywords = ["bạch", "đằng", "quyền"]
