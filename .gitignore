@@ -27,12 +27,6 @@ __pycache__/
 # ── Database runtime ──────────────────────────────────────────────────────────
 app/server/db.sqlite3
 
-# ── Generated data ────────────────────────────────────────────────────────────
-app/data/child_docs.json
-app/data/parent_docs.json
-app/data/chunk_id_registry.json
-app/data/lightrag_ingest_manifest.json
-
 # ── Test output ───────────────────────────────────────────────────────────────
 tests/reports/
 
