@@ -5,11 +5,14 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
+from app.core.app_config import get_config as _get_config
 from app.core.embeddings.embedder import (
     E5_EMBEDDING_DIM,
     E5_MAX_LENGTH,
     E5EmbeddingModel,
 )
+
+_lg_cfg = _get_config().lightrag
 from .ingest import (
     _build_parent_ingest_records,
     _chunk_records,
@@ -43,8 +46,8 @@ def build_lightrag_instance(
             max_token_size=E5_MAX_LENGTH,
             func=_embed_func,
         ),
-        chunk_token_size=5000,
-        chunk_overlap_token_size=0,
+        chunk_token_size=_lg_cfg.chunk_token_size,
+        chunk_overlap_token_size=_lg_cfg.chunk_overlap_token_size,
         max_parallel_insert=max_parallel_insert,
     )
 

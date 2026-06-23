@@ -48,6 +48,11 @@ history:
   summarize_threshold: 4
   recency_turns: 2
 
+lightrag:
+  chunk_token_size: 99999
+  chunk_overlap_token_size: 0
+  batch_size: 20
+  max_parallel_insert: 20
 data:
   raw_data_path: "app/data/ocr_data"
   lightrag_workspace: "app/data/lightrag_storage"

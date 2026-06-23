@@ -24,6 +24,12 @@ __pycache__/
 **/lightrag_storage/
 **/ocr_data/
 
+# ── Generated RAG data (quá lớn cho git, tái tạo bằng pipeline) ──────────────
+app/data/child_docs.json
+app/data/parent_docs.json
+app/data/chunk_id_registry.json
+app/data/lightrag_ingest_manifest.json
+
 # ── Database runtime ──────────────────────────────────────────────────────────
 app/server/db.sqlite3
 

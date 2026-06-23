@@ -25,12 +25,15 @@ from app.core.embeddings.embedder import (
     E5EmbeddingConfig,
     E5EmbeddingModel,
 )
+from app.core.app_config import get_config as _get_config
 from app.core.llm.llm_client import (
     LLM_BASE_URL as GEMINI_OPENAI_BASE_URL,
     build_llm_func as _build_gemini_llm_func,
     require_api_key as _require_gemini_key,
     resolve_model_name as _resolve_gemini_model_name,
 )
+
+_lp_cfg = _get_config().llm_provider
 from app.chatbot.rag import (
     LIGHTRAG_WORKSPACE,
     PARENT_COLLECTION_NAME,
@@ -78,13 +81,13 @@ class VietnamHistoryQueryEngine:
         self.llm = _build_gemini_llm_func(
             api_key=self.api_key,
             model_name=self.llm_model_name,
-            requests_per_minute=200,
-            max_concurrency=4,
-            max_retries=3,
+            requests_per_minute=_lp_cfg.requests_per_minute,
+            max_concurrency=_lp_cfg.max_concurrency,
+            max_retries=_lp_cfg.max_retries,
         )
         import openai as _openai
         self._stream_client = _openai.AsyncOpenAI(api_key=self.api_key, base_url=GEMINI_OPENAI_BASE_URL)
-        self._stream_semaphore = asyncio.Semaphore(4)
+        self._stream_semaphore = asyncio.Semaphore(_lp_cfg.max_concurrency)
 
         async def _embed_func(texts):
             return await asyncio.to_thread(self.dense_model.embed, texts)

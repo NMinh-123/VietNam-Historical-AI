@@ -72,6 +72,14 @@ class LLMProviderConfig:
 
 
 @dataclass
+class LightragConfig:
+    chunk_token_size: int
+    chunk_overlap_token_size: int
+    batch_size: int
+    max_parallel_insert: int
+
+
+@dataclass
 class HistoryConfig:
     summarize_threshold: int
     recency_turns: int
@@ -93,6 +101,7 @@ class AppConfig:
     chunking: ChunkingConfig
     vectordb: VectorDBConfig
     llm_provider: LLMProviderConfig
+    lightrag: LightragConfig
     history: HistoryConfig
     data: DataConfig
 
@@ -117,6 +126,7 @@ def _load(path: Path) -> AppConfig:
     c = raw["chunking"]
     v = raw["vectordb"]
     lp = raw["llm_provider"]
+    lg = raw["lightrag"]
     h = raw["history"]
     d = raw["data"]
 
@@ -166,6 +176,12 @@ def _load(path: Path) -> AppConfig:
             retry_delays=tuple(float(x) for x in lp["retry_delays"]),
             retryable_status_codes=frozenset(lp["retryable_status_codes"]),
         ),
+        lightrag=LightragConfig(
+            chunk_token_size=lg["chunk_token_size"],
+            chunk_overlap_token_size=lg["chunk_overlap_token_size"],
+            batch_size=lg["batch_size"],
+            max_parallel_insert=lg["max_parallel_insert"],
+        ),
         history=HistoryConfig(
             summarize_threshold=h["summarize_threshold"],
             recency_turns=h["recency_turns"],
@@ -186,6 +202,7 @@ __all__ = [
     "DataConfig",
     "EmbeddingConfig",
     "HistoryConfig",
+    "LightragConfig",
     "LLMConfig",
     "LLMProviderConfig",
     "ModelConfig",

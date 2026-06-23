@@ -26,7 +26,7 @@ RETRYABLE_STATUS_CODES = _lp_cfg.retryable_status_codes
 
 # Giới hạn RPM theo prefix model
 RPM_BY_MODEL_PREFIX: dict[str, int] = {
-    "gemini-2.5-pro": 200,
+    "gemini-3-flash-preview": 200,
     "gpt-5.4-mini": 200,
     "gpt-5-mini": 200,
 }

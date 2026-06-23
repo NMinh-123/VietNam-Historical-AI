@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer
 from app.core.app_config import get_config as _get_config
 
 _emb_cfg = _get_config().model.embedding
+_chunking_cfg = _get_config().chunking
 E5_EMBEDDING_MODEL_NAME = _emb_cfg.name
 E5_EMBEDDING_DIM = _emb_cfg.dim
 E5_MAX_LENGTH = _emb_cfg.max_length
@@ -27,7 +28,7 @@ E5_PROMPTS = {
 class E5EmbeddingConfig:
     model_name: str = E5_EMBEDDING_MODEL_NAME
     prompt_name: str = E5_PASSAGE_PROMPT_NAME
-    batch_size: int = 32
+    batch_size: int = _chunking_cfg.embed_batch_size
     normalize_embeddings: bool = True
     device: str | None = None
 

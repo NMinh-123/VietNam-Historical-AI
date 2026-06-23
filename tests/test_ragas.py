@@ -90,7 +90,9 @@ def build_samples(eval_set: list[dict], client: httpx.Client) -> list[dict]:
 def run_ragas(samples: list[dict]) -> dict:
     """Chạy RAGAS evaluate và trả về dict scores."""
     from ragas import EvaluationDataset, SingleTurnSample, evaluate
-    from ragas.metrics.collections import (
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from ragas.metrics import (
         faithfulness,
         answer_relevancy,
         context_precision,
@@ -98,8 +100,9 @@ def run_ragas(samples: list[dict]) -> dict:
     )
     from langchain_openai import ChatOpenAI
     from ragas.llms import LangchainLLMWrapper
+    from ragas.embeddings import LangchainEmbeddingsWrapper
 
-    # ── Cấu hình LLM judge (dùng cùng endpoint với server) ──────────────────
+    # ── Cấu hình LLM judge ──────────────────────────────────────────────────
     api_key = (
         os.getenv("GEMINI_KEY")
         or os.getenv("OPENAI_API_KEY")
@@ -124,13 +127,20 @@ def run_ragas(samples: list[dict]) -> dict:
 
     _log.info("RAGAS LLM judge: %s @ %s", model_name, base_url)
 
-    lc_llm = ChatOpenAI(
-        model=model_name,
-        api_key=api_key,
-        base_url=base_url,
-        temperature=0,
-    )
+    lc_llm = ChatOpenAI(model=model_name, api_key=api_key, base_url=base_url, temperature=0)
     ragas_llm = LangchainLLMWrapper(lc_llm)
+
+    # text-embedding-3-small không có trên ShopAIKey/gemini group → dùng local model
+    from langchain_community.embeddings import HuggingFaceEmbeddings
+    local_emb_model = os.getenv("RAGAS_EMBED_MODEL", "intfloat/multilingual-e5-small")
+    lc_emb = HuggingFaceEmbeddings(model_name=local_emb_model, model_kwargs={"device": "cpu"})
+    ragas_emb = LangchainEmbeddingsWrapper(lc_emb)
+
+    faithfulness.llm = ragas_llm
+    answer_relevancy.llm = ragas_llm
+    answer_relevancy.embeddings = ragas_emb
+    context_precision.llm = ragas_llm
+    context_recall.llm = ragas_llm
 
     # ── Tách samples có / không có reference ─────────────────────────────────
     with_ref = [s for s in samples if s.get("reference")]

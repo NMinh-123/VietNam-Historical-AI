@@ -6,6 +6,10 @@ import json
 import re
 from typing import Any
 
+from app.core.app_config import get_config as _get_config
+
+_retrieval_cfg = _get_config().retrieval
+
 # ── Historian Prompt (chế độ sử gia trung lập) ───────────────────────────────
 
 HISTORIAN_PROMPT = """\
@@ -148,8 +152,8 @@ _BROAD_PATTERNS = re.compile(
     re.I | re.UNICODE,
 )
 
-BROAD_TOP_K = 12
-BROAD_GRAPH_TOP_K = 20
+BROAD_TOP_K = _retrieval_cfg.broad_top_k
+BROAD_GRAPH_TOP_K = _retrieval_cfg.broad_graph_top_k
 
 DYNASTIES = [
     "Hồng Bàng Hùng Vương",
@@ -235,7 +239,7 @@ _AMBIGUOUS_RE = re.compile(
     re.I | re.UNICODE,
 )
 
-TOPIC_SHIFT_THRESHOLD = 0.12
+TOPIC_SHIFT_THRESHOLD = _retrieval_cfg.topic_shift_threshold
 
 
 def _word_set(text: str) -> set[str]:

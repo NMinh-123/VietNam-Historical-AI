@@ -56,8 +56,8 @@ QDRANT_PORT = int(os.getenv("QDRANT_PORT") or _cfg.vectordb.port)
 DEFAULT_GEMINI_MODEL_NAME = _cfg.model.llm.default
 DEFAULT_GEMINI_MAX_CONCURRENCY = _cfg.llm_provider.max_concurrency
 DEFAULT_GEMINI_TRANSIENT_MAX_RETRIES = _cfg.llm_provider.max_retries
-DEFAULT_LIGHTRAG_BATCH_SIZE = 20
-DEFAULT_LIGHTRAG_MAX_PARALLEL_INSERT = 20
+DEFAULT_LIGHTRAG_BATCH_SIZE = _cfg.lightrag.batch_size
+DEFAULT_LIGHTRAG_MAX_PARALLEL_INSERT = _cfg.lightrag.max_parallel_insert
 DEFAULT_QDRANT_BATCH_SIZE = _cfg.vectordb.batch_size
 DEFAULT_SHOPAIKEY_MODEL_NAME = _cfg.model.llm.shopaikey_default
 
