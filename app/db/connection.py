@@ -10,7 +10,7 @@ from pathlib import Path
 
 _logger = logging.getLogger(__name__)
 
-_TIMELINE_PATH: Path | None = None
+_TIMELINE_PATH: Path | None = None  # chỉ dùng khi SQLite
 
 # ── Backend detection ──────────────────────────────────────────────────────────
 
@@ -69,18 +69,20 @@ def get_timeline_conn() -> sqlite3.Connection:
 
 # ── Init ───────────────────────────────────────────────────────────────────────
 
-async def init_db(timeline_path: Path, db_path: Path | None = None) -> None:
+async def init_db(timeline_path: Path | None = None, db_path: Path | None = None) -> None:
     global _pool, _DB_PATH, _TIMELINE_PATH
-    _TIMELINE_PATH = timeline_path
-    _init_timeline_tables(timeline_path)
 
     if _use_postgres():
         import asyncpg
         _pool = await asyncpg.create_pool(dsn=_pg_dsn(), min_size=2, max_size=10, command_timeout=30)
         await _create_pg_tables()
-        _logger.info("PostgreSQL pool khởi tạo thành công.")
+        await _create_pg_timeline_tables()
+        _logger.info("PostgreSQL pool khởi tạo thành công (bao gồm timeline).")
     else:
+        assert timeline_path is not None, "timeline_path required khi dùng SQLite"
         assert db_path is not None, "db_path required khi dùng SQLite"
+        _TIMELINE_PATH = timeline_path
+        _init_timeline_tables(timeline_path)
         _DB_PATH = db_path
         _create_sqlite_tables()
         _logger.info("SQLite khởi tạo tại %s", db_path)
@@ -248,6 +250,46 @@ _KING_SEED: list[tuple] = [
     (16, 13, 2, "Minh Mạng",           1820, 1841, "Trung ương tập quyền mạnh, mở rộng lãnh thổ."),
     (17, 14, 1, "Hồ Chí Minh",         1945, 1969, "Lãnh tụ cách mạng, Chủ tịch đầu tiên nước VNDCCH."),
 ]
+
+
+_TIMELINE_SCHEMA_PG = """
+    CREATE TABLE IF NOT EXISTS core_dynasty (
+        id          INTEGER PRIMARY KEY,
+        "order"     INTEGER NOT NULL DEFAULT 0,
+        name        TEXT    NOT NULL,
+        start_year  INTEGER,
+        end_year    INTEGER,
+        description TEXT,
+        color       TEXT
+    );
+    CREATE TABLE IF NOT EXISTS core_king (
+        id          INTEGER PRIMARY KEY,
+        dynasty_id  INTEGER NOT NULL REFERENCES core_dynasty(id),
+        "order"     INTEGER NOT NULL DEFAULT 0,
+        name        TEXT    NOT NULL,
+        reign_start INTEGER,
+        reign_end   INTEGER,
+        description TEXT
+    );
+"""
+
+
+async def _create_pg_timeline_tables() -> None:
+    async with get_pool().acquire() as conn:
+        await conn.execute(_TIMELINE_SCHEMA_PG)
+        count = await conn.fetchval("SELECT COUNT(*) FROM core_dynasty")
+        if count == 0:
+            await conn.executemany(
+                'INSERT INTO core_dynasty (id, "order", name, start_year, end_year, description, color) '
+                "VALUES ($1,$2,$3,$4,$5,$6,$7)",
+                _TIMELINE_SEED,
+            )
+            await conn.executemany(
+                'INSERT INTO core_king (id, dynasty_id, "order", name, reign_start, reign_end, description) '
+                "VALUES ($1,$2,$3,$4,$5,$6,$7)",
+                _KING_SEED,
+            )
+            _logger.info("Timeline seeded vào PostgreSQL.")
 
 
 def _init_timeline_tables(path: Path) -> None:

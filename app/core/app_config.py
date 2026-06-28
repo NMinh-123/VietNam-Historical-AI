@@ -34,6 +34,7 @@ class ModelConfig:
 class RetrievalConfig:
     top_k: int
     limit: int
+    graph_top_k: int
     broad_top_k: int
     broad_graph_top_k: int
     fused_weight: float
@@ -146,6 +147,7 @@ def _load(path: Path) -> AppConfig:
         retrieval=RetrievalConfig(
             top_k=r["top_k"],
             limit=r["limit"],
+            graph_top_k=r["graph_top_k"],
             broad_top_k=r["broad_top_k"],
             broad_graph_top_k=r["broad_graph_top_k"],
             fused_weight=r["fused_weight"],

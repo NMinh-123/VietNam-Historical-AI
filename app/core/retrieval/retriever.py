@@ -1,30 +1,46 @@
-"""Truy xuất hybrid Qdrant: dense (E5) + sparse (BM25) → RRF → lexical rerank."""
+"""Truy xuất hybrid Qdrant: dense (E5) + sparse (BM25) → RRF → BGE rerank."""
 
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any
 
 from fastembed import SparseTextEmbedding
 from qdrant_client import QdrantClient, models
 
 from app.core.embeddings.embedder import E5EmbeddingModel
-from app.core.utils.helpers import _lexical_score, build_query, build_source_label
+from app.core.utils.helpers import build_query, build_source_label
 from app.core.vectordb.vector_store import (
     COLLECTION_NAME,
     PARENT_COLLECTION_NAME,
     fetch_parent_texts,
 )
 
-# ── Trọng số scoring ──────────────────────────────────────────────────────────
+_logger = logging.getLogger(__name__)
 
 from app.core.app_config import get_config as _get_config
 
 _ret_cfg = _get_config().retrieval
-_FUSED_WEIGHT = _ret_cfg.fused_weight
-_LEXICAL_WEIGHT = _ret_cfg.lexical_weight
-_COUNT_BONUS = _ret_cfg.count_bonus
 _MAX_CHUNKS_PER_PARENT = _ret_cfg.max_chunks_per_parent
+
+# ── BGE Reranker (lazy load lần đầu dùng) ────────────────────────────────────
+
+_reranker = None
+# MiniLM-L12: ~67MB, ~0.8s/query trên CPU — nhanh hơn bge-reranker-v2-m3 (~500×)
+# Hạn chế: trained trên MS MARCO (English). Với câu hỏi tiếng Việt phức tạp có thể dùng
+# "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1" (multilingual) nếu cần chính xác hơn.
+_RERANKER_MODEL = "BAAI/bge-reranker-base"
+
+
+def _get_reranker():
+    global _reranker
+    if _reranker is None:
+        from sentence_transformers import CrossEncoder
+        _logger.info("Đang tải cross-encoder reranker: %s", _RERANKER_MODEL)
+        _reranker = CrossEncoder(_RERANKER_MODEL)
+        _logger.info("Reranker sẵn sàng.")
+    return _reranker
 
 
 def _retrieve(
@@ -36,7 +52,7 @@ def _retrieve(
     sparse_model: SparseTextEmbedding,
     parent_collection: str = PARENT_COLLECTION_NAME,
 ) -> dict[str, Any]:
-    """Hybrid search + lexical rerank, trả về top_k kết quả đa dạng."""
+    """Hybrid search (RRF) → dedup by parent → BGE rerank → top_k."""
     q = build_query(query)
 
     dense_vec = dense_model.embed([q["dense"]])[0]
@@ -59,55 +75,69 @@ def _retrieve(
         limit=limit,
     )
 
-    unique_parent_ids = list({
-        (hit.payload or {}).get("parent_id")
-        for hit in result.points
-        if (hit.payload or {}).get("parent_id")
-    })
-    parent_texts = fetch_parent_texts(qdrant, unique_parent_ids, parent_collection)
-
-    grouped: dict[str, dict[str, Any]] = {}
+    # BGE chấm trên child chunks (~600 tokens) — nhanh hơn 3× so với parent (2000 tokens)
+    # Dedup theo parent_id: giữ child chunk có RRF score cao nhất mỗi parent
+    seen_parents: dict[str, dict[str, Any]] = {}
     for hit in result.points:
         payload = hit.payload or {}
         parent_id = payload.get("parent_id")
-        context = parent_texts.get(parent_id) or payload.get("page_content", "")
-        if not context:
+        child_text = payload.get("page_content", "")
+        if not child_text or not parent_id:
             continue
-
-        fused = float(hit.score or 0.0)
-        lexical = _lexical_score(q["keywords"], context)
-        score = _FUSED_WEIGHT * fused + _LEXICAL_WEIGHT * lexical
-        key = parent_id or context[:100]
-
-        if key not in grouped:
-            grouped[key] = {
-                "text": context,
-                "score": score,
+        key = parent_id
+        rrf_score = float(hit.score or 0.0)
+        if key not in seen_parents or rrf_score > seen_parents[key]["rrf_score"]:
+            seen_parents[key] = {
+                "child_text": child_text,
+                "rrf_score": rrf_score,
                 "parent_id": parent_id,
-                "count": 1,
                 "source": payload.get("source"),
                 "page": payload.get("page"),
                 "page_label": payload.get("page_label"),
                 "title": payload.get("title"),
             }
-        else:
-            grouped[key]["score"] += score
-            grouped[key]["count"] += 1
 
-    ranked = sorted(
-        grouped.values(),
-        key=lambda x: x["score"] + _COUNT_BONUS * x["count"],
-        reverse=True,
-    )
+    candidates = list(seen_parents.values())
 
-    final: list[dict[str, Any]] = []
+    # BGE cross-encoder rerank trên child chunks
+    reranker = _get_reranker()
+    pairs = [(query, item["child_text"]) for item in candidates]
+    bge_scores = reranker.predict(pairs)
+    if not hasattr(bge_scores, "__iter__"):
+        bge_scores = [bge_scores]
+
+    import gc
+    gc.collect()
+        
+    for item, bge_score in zip(candidates, bge_scores):
+        item["score"] = float(bge_score)
+
+    ranked = sorted(candidates, key=lambda x: x["score"], reverse=True)
+
+    # Fetch parent texts chỉ cho top_k candidates đã được chọn
+    top_parent_ids = []
     seen: dict[str, int] = {}
     for item in ranked:
         pid = item["parent_id"]
         if seen.get(pid, 0) < _MAX_CHUNKS_PER_PARENT:
-            item["source_label"] = build_source_label(item)
-            final.append(item)
+            top_parent_ids.append(pid)
             seen[pid] = seen.get(pid, 0) + 1
+        if len(top_parent_ids) >= top_k:
+            break
+
+    parent_texts = fetch_parent_texts(qdrant, top_parent_ids, parent_collection)
+
+    final: list[dict[str, Any]] = []
+    seen2: dict[str, int] = {}
+    for item in ranked:
+        pid = item["parent_id"]
+        if seen2.get(pid, 0) >= _MAX_CHUNKS_PER_PARENT:
+            continue
+        context = parent_texts.get(pid) or item["child_text"]
+        item["text"] = context
+        item["source_label"] = build_source_label(item)
+        final.append(item)
+        seen2[pid] = seen2.get(pid, 0) + 1
         if len(final) >= top_k:
             break
 

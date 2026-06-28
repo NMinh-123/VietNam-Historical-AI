@@ -152,6 +152,7 @@ _BROAD_PATTERNS = re.compile(
     re.I | re.UNICODE,
 )
 
+GRAPH_TOP_K = _retrieval_cfg.graph_top_k
 BROAD_TOP_K = _retrieval_cfg.broad_top_k
 BROAD_GRAPH_TOP_K = _retrieval_cfg.broad_graph_top_k
 
@@ -283,6 +284,7 @@ def build_retrieval_query(question: str, turns: list[dict]) -> tuple[str, bool]:
 
 
 __all__ = [
+    "GRAPH_TOP_K",
     "BROAD_GRAPH_TOP_K",
     "BROAD_TOP_K",
     "DYNASTIES",

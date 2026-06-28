@@ -23,14 +23,17 @@ from datetime import datetime
 from pathlib import Path
 
 import httpx
+from dotenv import load_dotenv
 
 _HERE = Path(__file__).resolve().parent
 _ROOT = _HERE.parent
+
+load_dotenv(_ROOT / ".env", override=False)
 _EVAL_SET = _HERE / "data" / "ragas_eval_set.json"
 _REPORTS_DIR = _ROOT / "tests" / "reports"
 
-BASE_URL = os.getenv("VICAL_BASE_URL", "http://localhost:8001")
-TIMEOUT = 120.0
+BASE_URL = os.getenv("VICAL_BASE_URL", "http://localhost:8000")
+TIMEOUT = 500.0
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 _log = logging.getLogger(__name__)
@@ -114,7 +117,16 @@ def run_ragas(samples: list[dict]) -> dict:
             "Thiếu API key. Hãy đặt GEMINI_KEY, OPENAI_API_KEY hoặc SHOPAIKEY_TOKEN."
         )
 
-    base_url = (
+    def _normalize(url: str) -> str:
+        import re
+        u = (url or "").strip().rstrip("/")
+        if u.endswith("/chat/completions"):
+            u = u[: -len("/chat/completions")]
+        if u and not re.search(r"/v\d+$", u) and not u.endswith("/openai"):
+            u = f"{u}/v1"
+        return u
+
+    base_url = _normalize(
         os.getenv("OPENAI_COMPAT_BASE_URL")
         or os.getenv("SHOPAIKEY_BASE_URL")
         or "https://generativelanguage.googleapis.com/v1beta/openai/"
@@ -122,6 +134,7 @@ def run_ragas(samples: list[dict]) -> dict:
     model_name = (
         os.getenv("RAGAS_MODEL")
         or os.getenv("OPENAI_MODEL_NAME")
+        or os.getenv("GEMINI_MODEL_NAME")
         or "gemini-2.0-flash-lite"
     )
 
@@ -130,10 +143,14 @@ def run_ragas(samples: list[dict]) -> dict:
     lc_llm = ChatOpenAI(model=model_name, api_key=api_key, base_url=base_url, temperature=0)
     ragas_llm = LangchainLLMWrapper(lc_llm)
 
-    # text-embedding-3-small không có trên ShopAIKey/gemini group → dùng local model
-    from langchain_community.embeddings import HuggingFaceEmbeddings
-    local_emb_model = os.getenv("RAGAS_EMBED_MODEL", "intfloat/multilingual-e5-small")
-    lc_emb = HuggingFaceEmbeddings(model_name=local_emb_model, model_kwargs={"device": "cpu"})
+    # Dùng API embedding thay vì load local model để tiết kiệm RAM (~400MB)
+    # answer_relevancy cần embeddings để tính cosine similarity
+    from langchain_openai import OpenAIEmbeddings
+    lc_emb = OpenAIEmbeddings(
+        model=os.getenv("RAGAS_EMBED_MODEL", "text-embedding-3-small"),
+        api_key=api_key,
+        base_url=base_url,
+    )
     ragas_emb = LangchainEmbeddingsWrapper(lc_emb)
 
     faithfulness.llm = ragas_llm

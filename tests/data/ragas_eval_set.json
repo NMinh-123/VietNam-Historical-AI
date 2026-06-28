@@ -1,52 +1,77 @@
 [
   {
-    "id": "R001",
-    "question": "Trận Bạch Đằng năm 938 diễn ra như thế nào và ai là người chỉ huy?",
-    "reference": "Trận Bạch Đằng năm 938 do Ngô Quyền chỉ huy. Ông cho cắm cọc nhọn bịt sắt xuống lòng sông Bạch Đằng, dụ thuyền chiến Nam Hán vào lúc thủy triều lên cao. Khi thủy triều rút, thuyền giặc bị cọc đâm thủng và vỡ hàng loạt. Hoàng Thao, con trai vua Nam Hán, bị giết trong trận. Chiến thắng này chấm dứt hơn nghìn năm Bắc thuộc."
+    "id": "S001",
+    "question": "Lê Lợi đã lãnh đạo khởi nghĩa Lam Sơn như thế nào để đánh đuổi quân Minh?",
+    "reference": "Lê Lợi dựng cờ khởi nghĩa tại Lam Sơn (Thanh Hóa) năm 1418, xưng là Bình Định Vương. Giai đoạn đầu gặp nhiều thất bại, phải ẩn náu ở rừng núi Thanh Hóa. Từ 1424 áp dụng chiến lược tiến vào Nghệ An, mở rộng căn cứ vào nam. Năm 1426 tiến ra Bắc, đánh bại viện binh Minh tại Chi Lăng–Xương Giang (1427). Vương Thông đầu hàng, Lê Lợi lên ngôi năm 1428, lập ra nhà Lê sơ."
   },
   {
-    "id": "R002",
-    "question": "Nhà Lý được thành lập như thế nào và tồn tại trong bao lâu?",
-    "reference": "Nhà Lý được thành lập năm 1009 bởi Lý Công Uẩn (Lý Thái Tổ) sau khi vua Lê Long Đĩnh băng hà. Ông dời đô từ Hoa Lư về Đại La và đổi tên thành Thăng Long. Nhà Lý tồn tại 216 năm (1009–1225), trải qua 9 đời vua, chấm dứt khi Lý Chiêu Hoàng nhường ngôi cho Trần Cảnh."
+    "id": "S002",
+    "question": "Quang Trung Nguyễn Huệ đại phá quân Thanh năm 1789 diễn ra như thế nào?",
+    "reference": "Cuối 1788, 29 vạn quân Thanh do Tôn Sĩ Nghị chỉ huy tiến vào Thăng Long theo lời cầu viện của Lê Chiêu Thống. Nguyễn Huệ lên ngôi Hoàng đế (Quang Trung) ngày 22/12/1788 tại Phú Xuân, thần tốc hành quân ra Bắc. Mùng 5 Tết Kỷ Dậu (30/1/1789) quân Tây Sơn tấn công đồng loạt, tiêu diệt đồn Hà Hồi, Ngọc Hồi, Đống Đa. Tôn Sĩ Nghị bỏ chạy về Trung Quốc, toàn bộ quân Thanh bị đánh tan trong 5 ngày."
   },
   {
-    "id": "R003",
-    "question": "Ba lần kháng chiến chống Nguyên Mông của nhà Trần diễn ra vào những năm nào?",
-    "reference": "Nhà Trần ba lần đánh bại quân Nguyên Mông: lần thứ nhất năm 1258 (Nguyên Mông xâm lược lần đầu, bị đánh bại tại Đông Bộ Đầu), lần thứ hai năm 1285 (Thoát Hoan xâm lược, bị đánh bại; nổi bật với chiến thắng Hàm Tử, Chương Dương, Tây Kết), lần thứ ba năm 1288 (bị đánh bại tại trận Bạch Đằng do Trần Hưng Đạo chỉ huy, tiêu diệt đoàn thuyền lương của Ô Mã Nhi)."
+    "id": "S003",
+    "question": "Nhà Trần chống quân Nguyên Mông lần thứ nhất năm 1258 như thế nào?",
+    "reference": "Tháng 1/1258, 3 vạn quân Nguyên do Ngột Lương Hợp Thai chỉ huy tràn vào Đại Việt qua ngã Vân Nam. Vua Trần Thái Tông áp dụng chiến thuật vườn không nhà trống, bỏ Thăng Long rút về Thiên Mạc. Quân Nguyên chiếm Thăng Long nhưng thiếu lương thực, suy yếu. Quân Trần phản công tại trận Đông Bộ Đầu (29/1/1258), đánh bại quân Nguyên. Ngột Lương Hợp Thai phải rút quân về nước sau chưa đầy một tháng."
   },
   {
-    "id": "R004",
-    "question": "Cuộc khởi nghĩa Lam Sơn bắt đầu như thế nào và ai là lãnh đạo?",
-    "reference": "Khởi nghĩa Lam Sơn bắt đầu năm 1418 tại vùng đất Lam Sơn, Thanh Hóa, do Lê Lợi lãnh đạo. Giai đoạn đầu gặp nhiều khó khăn, quân Lam Sơn phải rút lên núi chống cự. Nguyễn Trãi giúp Lê Lợi soạn thảo chiến lược và ngoại giao. Sau 10 năm chiến đấu (1418–1428), nghĩa quân đánh đuổi quân Minh, giải phóng Đông Quan (Hà Nội), lập ra nhà Lê."
+    "id": "S004",
+    "question": "Lê Thánh Tông đã có những cải cách gì làm cho nhà Lê sơ đạt đỉnh cao?",
+    "reference": "Lê Thánh Tông (1460–1497) cải cách toàn diện: ban hành Bộ luật Hồng Đức (1483) – bộ luật hoàn chỉnh nhất thời phong kiến; cải tổ bộ máy hành chính chia cả nước thành 13 đạo thừa tuyên; tổ chức thi cử đều đặn, mở rộng Quốc Tử Giám; lập Hội Tao Đàn khuyến khích văn học; thực hiện đo đạc điền thổ (dư địa chí). Ông còn mở rộng lãnh thổ xuống phía Nam, diệt Chiêm Thành (1471)."
   },
   {
-    "id": "R005",
-    "question": "Nguyễn Huệ là ai và ông đã đánh bại quân Thanh như thế nào?",
-    "reference": "Nguyễn Huệ (vua Quang Trung) là lãnh tụ phong trào Tây Sơn. Năm 1789, 29 vạn quân Thanh do Tôn Sĩ Nghị chỉ huy xâm lược Đại Việt. Nguyễn Huệ lên ngôi Hoàng đế rồi thần tốc hành quân ra Bắc, tấn công vào đêm Giao thừa Tết Kỷ Dậu. Trong vòng 5 ngày (từ 25 tháng Chạp đến mùng 5 tháng Giêng), quân Tây Sơn tiêu diệt và đánh tan quân Thanh tại Đống Đa, Ngọc Hồi, giải phóng Thăng Long."
+    "id": "S005",
+    "question": "Cuộc chiến tranh Trịnh – Nguyễn phân tranh kéo dài bao lâu và hệ quả là gì?",
+    "reference": "Trịnh – Nguyễn phân tranh kéo dài gần 200 năm (1627–1777). Sông Gianh (Quảng Bình) trở thành ranh giới tự nhiên: chúa Trịnh kiểm soát Đàng Ngoài (từ Thanh Hóa trở ra), chúa Nguyễn cai trị Đàng Trong. Hai bên đánh nhau 7 lần lớn nhưng không phân thắng bại. Hệ quả: đất nước bị chia cắt, nhân dân khổ cực; nhưng chúa Nguyễn cũng mở rộng lãnh thổ vào Nam Bộ và xác lập chủ quyền Hoàng Sa–Trường Sa. Phong trào Tây Sơn chấm dứt cục diện phân tranh."
   },
   {
-    "id": "R006",
-    "question": "Tuyên ngôn Độc lập 1945 được đọc ở đâu và nội dung chính là gì?",
-    "reference": "Bản Tuyên ngôn Độc lập do Hồ Chí Minh soạn thảo và đọc ngày 2 tháng 9 năm 1945 tại Quảng trường Ba Đình, Hà Nội. Tuyên ngôn khẳng định quyền tự do, bình đẳng của con người và các dân tộc, trích dẫn Tuyên ngôn Độc lập Mỹ (1776) và Tuyên ngôn Nhân quyền Pháp (1791). Tuyên bố chính thức thành lập nước Việt Nam Dân chủ Cộng hòa, chấm dứt chế độ thực dân Pháp và phong kiến."
+    "id": "S006",
+    "question": "Phong trào Cần Vương là gì và có những cuộc khởi nghĩa tiêu biểu nào?",
+    "reference": "Phong trào Cần Vương (1885–1896) bùng nổ sau khi vua Hàm Nghi ra Chiếu Cần Vương kêu gọi sĩ phu và nhân dân kháng Pháp. Các cuộc khởi nghĩa tiêu biểu: khởi nghĩa Hương Khê (1885–1895) do Phan Đình Phùng và Cao Thắng lãnh đạo tại Hà Tĩnh–Quảng Bình, lâu dài và quy mô nhất; khởi nghĩa Ba Đình (1886–1887) do Đinh Công Tráng tại Thanh Hóa; khởi nghĩa Bãi Sậy (1885–1892) do Nguyễn Thiện Thuật ở Hưng Yên. Phong trào thất bại do thiếu liên kết và vũ khí thô sơ."
   },
   {
-    "id": "R007",
-    "question": "Nhà Nguyễn được thành lập như thế nào và ai là người sáng lập?",
-    "reference": "Nhà Nguyễn được thành lập năm 1802 bởi Nguyễn Ánh (vua Gia Long) sau khi đánh bại triều Tây Sơn. Nguyễn Ánh đã phải bôn ba nhiều năm, cầu viện Pháp qua Hiệp ước Versailles 1787, rồi dần dần thống nhất đất nước. Đến năm 1802, ông lên ngôi tại Phú Xuân (Huế), đặt quốc hiệu là Việt Nam. Đây là triều đại phong kiến cuối cùng của Việt Nam, tồn tại đến năm 1945."
+    "id": "S007",
+    "question": "Đảng Cộng sản Việt Nam được thành lập như thế nào và trong hoàn cảnh nào?",
+    "reference": "Ngày 3/2/1930, Đảng Cộng sản Việt Nam được thành lập tại Cửu Long (Hồng Kông) dưới sự chủ trì của Nguyễn Ái Quốc (Hồ Chí Minh), thống nhất ba tổ chức cộng sản: Đông Dương Cộng sản Đảng, An Nam Cộng sản Đảng và Đông Dương Cộng sản Liên đoàn. Hội nghị thông qua Chánh cương vắn tắt, Sách lược vắn tắt và Điều lệ. Đảng ra đời trong bối cảnh phong trào yêu nước đang bị đàn áp, đánh dấu bước ngoặt lịch sử trong cuộc đấu tranh giành độc lập của dân tộc."
   },
   {
-    "id": "R008",
-    "question": "Điện Biên Phủ năm 1954 là trận đánh gì và kết quả ra sao?",
-    "reference": "Chiến dịch Điện Biên Phủ (13/3–7/5/1954) là trận đánh quyết định giữa Quân đội Nhân dân Việt Nam do Đại tướng Võ Nguyên Giáp chỉ huy và quân đội Pháp do Tướng De Castries chỉ huy. Quân Pháp xây dựng cứ điểm kiên cố tại lòng chảo Điện Biên Phủ với 49 cứ điểm. Quân đội Việt Nam vây hãm và công phá từng cứ điểm, đêm 7/5/1954 tổng tấn công, bắt sống toàn bộ bộ chỉ huy Pháp. Chiến thắng này buộc Pháp ký Hiệp định Genève, công nhận độc lập của Việt Nam."
+    "id": "S008",
+    "question": "Lý Nam Đế là ai và nước Vạn Xuân tồn tại trong hoàn cảnh nào?",
+    "reference": "Lý Bí (Lý Nam Đế) là người Thái Bình, Long Hưng, khởi nghĩa năm 542 chống nhà Lương (Trung Quốc). Năm 544, ông lên ngôi Hoàng đế, đặt quốc hiệu Vạn Xuân, đóng đô ở vùng cửa sông Tô Lịch, lập triều đình độc lập. Năm 545, nhà Lương phản công, Lý Nam Đế phải rút lui, giao quyền cho Triệu Quang Phục. Vạn Xuân tồn tại đến năm 602 trước khi bị nhà Tùy đánh bại. Đây là nhà nước độc lập đầu tiên của người Việt sau thời Âu Lạc."
   },
   {
-    "id": "R009",
-    "question": "Văn minh Đông Sơn là gì và có đặc điểm gì nổi bật?",
-    "reference": "Văn minh Đông Sơn là nền văn hóa cổ đại của người Việt, phát triển từ khoảng thế kỷ VII TCN đến thế kỷ I SCN tại đồng bằng sông Hồng và một số vùng Đông Nam Á. Đặc trưng nổi bật là kỹ thuật đúc đồng thau đạt trình độ cao, tiêu biểu là trống đồng Đông Sơn với hoa văn hình chim, thuyền và lễ hội. Gắn liền với thời kỳ Hùng Vương và nhà nước Văn Lang."
+    "id": "S009",
+    "question": "Chiến dịch Hồ Chí Minh 1975 diễn ra như thế nào và kết thúc ra sao?",
+    "reference": "Chiến dịch Hồ Chí Minh (26/4–30/4/1975) là chiến dịch cuối cùng của cuộc kháng chiến chống Mỹ. Năm cánh quân Quân Giải phóng tấn công đồng loạt vào Sài Gòn từ tất cả các hướng. Trưa 30/4/1975, xe tăng quân Giải phóng húc đổ cổng Dinh Độc Lập. Tổng thống Dương Văn Minh tuyên bố đầu hàng vô điều kiện lúc 11h30. Miền Nam hoàn toàn giải phóng, kết thúc 30 năm chiến tranh. Đất nước thống nhất về mặt nhà nước năm 1976."
   },
   {
-    "id": "R010",
-    "question": "Hai Bà Trưng là ai và cuộc khởi nghĩa của họ có ý nghĩa gì?",
-    "reference": "Trưng Trắc và Trưng Nhị là hai chị em người Mê Linh (Vĩnh Phúc). Năm 40 SCN, Trưng Trắc nổi dậy sau khi chồng là Thi Sách bị Thái thú Tô Định giết hại. Hai bà lãnh đạo cuộc khởi nghĩa đánh đuổi quân Hán, giải phóng 65 thành trì, lập nước tự chủ và Trưng Trắc tự xưng vương (Trưng Vương). Cuộc khởi nghĩa tồn tại 3 năm (40–43 SCN) trước khi bị Mã Viện đàn áp. Đây là cuộc khởi nghĩa lớn đầu tiên trong lịch sử Việt Nam, khẳng định ý chí độc lập của dân tộc."
+    "id": "S010",
+    "question": "Hội nghị Diên Hồng năm 1284 là gì và có ý nghĩa như thế nào?",
+    "reference": "Hội nghị Diên Hồng tổ chức cuối năm 1284 tại điện Diên Hồng dưới triều vua Trần Nhân Tông, trước nguy cơ quân Nguyên xâm lược lần hai (1285). Vua Trần triệu tập các bô lão đại diện cho nhân dân cả nước để hỏi ý kiến: nên đánh hay nên hòa. Toàn thể bô lão đồng thanh hô 'Đánh!'. Hội nghị thể hiện tinh thần đoàn kết toàn dân, ý chí quyết tâm kháng chiến chống ngoại xâm, và truyền thống 'dân là gốc' của nhà Trần."
+  },
+  {
+    "id": "S011",
+    "question": "Nguyễn Trãi là ai và ông đóng góp gì cho lịch sử và văn học Việt Nam?",
+    "reference": "Nguyễn Trãi (1380–1442) là nhà chính trị, nhà văn hóa lớn thời Lê sơ. Ông là quân sư của Lê Lợi trong khởi nghĩa Lam Sơn, soạn Bình Ngô đại cáo (1428) – bản tuyên ngôn độc lập thứ hai của Việt Nam. Về văn học, ông để lại Ức Trai thi tập (chữ Hán) và Quốc âm thi tập (chữ Nôm) – tập thơ Nôm đầu tiên còn lại đến nay. Năm 1442, ông bị kết tội trong vụ án Lệ Chi Viên và bị chu di tam tộc. Năm 1464, vua Lê Thánh Tông minh oan cho ông."
+  },
+  {
+    "id": "S012",
+    "question": "Vương quốc Chăm Pa hình thành và sụp đổ như thế nào trong lịch sử?",
+    "reference": "Vương quốc Chăm Pa hình thành từ thế kỷ II SCN tại miền Trung Việt Nam (từ Quảng Bình đến Bình Thuận ngày nay), trên cơ sở văn hóa Sa Huỳnh. Nhà nước Lâm Ấp (tiền thân) được Khu Liên lập ra khoảng năm 192 SCN. Chăm Pa phát triển rực rỡ từ thế kỷ VII–X với kiến trúc tháp Chăm và ảnh hưởng Hindu giáo mạnh mẽ. Trải qua nhiều cuộc xung đột với Đại Việt, lãnh thổ Chăm Pa thu hẹp dần. Năm 1471, vua Lê Thánh Tông chiếm kinh đô Vijaya, Chăm Pa suy yếu hoàn toàn và tan rã vào cuối thế kỷ XVII."
+  },
+  {
+    "id": "S013",
+    "question": "Công cuộc Đổi Mới 1986 của Việt Nam là gì và dẫn đến những thay đổi gì?",
+    "reference": "Đổi Mới được khởi xướng tại Đại hội Đảng lần VI (12/1986) trong bối cảnh kinh tế đất nước khủng hoảng nghiêm trọng: lạm phát hơn 700%, thiếu lương thực, cô lập quốc tế. Nội dung cốt lõi: chuyển từ kinh tế kế hoạch hóa tập trung sang kinh tế thị trường định hướng xã hội chủ nghĩa; xóa bỏ ngăn sông cấm chợ, trao quyền tự chủ cho doanh nghiệp và hộ nông dân; mở cửa thu hút đầu tư nước ngoài. Kết quả: GDP tăng trưởng mạnh, xóa đói giảm nghèo, Việt Nam bình thường hóa quan hệ với Mỹ (1995) và gia nhập ASEAN (1995)."
+  },
+  {
+    "id": "S014",
+    "question": "Lê Hoàn (Lê Đại Hành) lên ngôi và chống Tống như thế nào?",
+    "reference": "Năm 979, Đinh Tiên Hoàng và Đinh Liễn bị ám sát. Lê Hoàn, lúc đó là Thập đạo tướng quân, nắm quyền nhiếp chính bên cạnh vua nhỏ Đinh Toàn. Năm 980, nhà Tống xâm lược Đại Cồ Việt. Thái hậu Dương Vân Nga trao áo bào cho Lê Hoàn lên ngôi Hoàng đế, lập ra nhà Tiền Lê. Lê Hoàn chỉ huy chống Tống tại sông Bạch Đằng và Chi Lăng năm 981, đại phá quân Tống. Bên cạnh đó ông cũng đánh bại Chiêm Thành (982), củng cố bờ cõi phía Nam."
+  },
+  {
+    "id": "S015",
+    "question": "Hiệp định Genève 1954 chia đôi Việt Nam như thế nào và hệ quả của nó?",
+    "reference": "Hiệp định Genève ký ngày 21/7/1954 sau chiến thắng Điện Biên Phủ. Nội dung chính: lấy vĩ tuyến 17 (sông Bến Hải) làm giới tuyến quân sự tạm thời, Việt Nam Dân chủ Cộng hòa kiểm soát phía Bắc, Quốc gia Việt Nam (sau là Việt Nam Cộng hòa) kiểm soát phía Nam. Dự kiến tổng tuyển cử thống nhất vào 7/1956 nhưng không được thực hiện. Khoảng 90 vạn người miền Bắc di cư vào Nam. Hệ quả: đất nước bị chia cắt dẫn đến cuộc chiến tranh Việt Nam kéo dài đến 1975."
   }
 ]

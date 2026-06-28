@@ -56,6 +56,7 @@ from app.core.prompts.prompt_templates import (
     decompose_broad_query as _decompose_broad_query,
     parse_graph as _parse_graph,
     build_retrieval_query as _build_retrieval_query,
+    GRAPH_TOP_K as _GRAPH_TOP_K,
     BROAD_TOP_K as _BROAD_TOP_K,
     BROAD_GRAPH_TOP_K as _BROAD_GRAPH_TOP_K,
 )
@@ -105,6 +106,9 @@ class VietnamHistoryQueryEngine:
         self._rag_ready = False
         self._lock = asyncio.Lock()
         self._warmup_task: asyncio.Task | None = None
+        # Giới hạn số sub-query chạy đồng thời để tránh bão hoà thread pool
+        # khi decompose tạo ra nhiều sub-queries song song với LightRAG aquery
+        self._retrieve_sem = asyncio.Semaphore(6)
 
     async def _init_rag(self) -> None:
         # Khởi tạo LightRAG lần đầu với khoá mutex để tránh khởi tạo song song
@@ -141,7 +145,11 @@ class VietnamHistoryQueryEngine:
         self, sub_queries: list[str], top_k_each: int = 3
     ) -> dict[str, Any]:
         """Retrieve song song theo từng sub-query triều đại, merge + dedup kết quả."""
-        tasks = [self.get_vector(q, top_k=top_k_each) for q in sub_queries]
+        async def _bounded(q: str):
+            async with self._retrieve_sem:
+                return await self.get_vector(q, top_k=top_k_each)
+
+        tasks = [_bounded(q) for q in sub_queries]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         seen_ids: set[str] = set()
@@ -167,14 +175,15 @@ class VietnamHistoryQueryEngine:
         try:
             raw = await self.rag.aquery(
                 query,
-                param=QueryParam(mode="local", only_need_context=True, top_k=top_k),
+                param=QueryParam(mode="local", only_need_context=True, top_k=top_k, enable_rerank=False),
             )
         except Exception as exc:
             _logger.warning("LightRAG graph query thất bại: %s", exc, exc_info=True)
             return {"items": [], "error": str(exc)}
 
         text = _coerce_text(raw)
-        return {"items": [{"text": b} for b in _split_blocks(text)]}
+        blocks = _split_blocks(text)[:top_k]
+        return {"items": [{"text": b} for b in blocks]}
 
     async def ask_with_sources(
         self, question: str, history: str = "", turns: list[dict] | None = None
@@ -190,7 +199,7 @@ class VietnamHistoryQueryEngine:
 
         is_broad = _is_broad_query(question) or _is_broad_query(retrieval_query)
         vec_top_k = _BROAD_TOP_K if is_broad else self._top_k
-        graph_top_k = _BROAD_GRAPH_TOP_K if is_broad else 10
+        graph_top_k = _BROAD_GRAPH_TOP_K if is_broad else _GRAPH_TOP_K
 
         if is_broad:
             sub_queries = _decompose_broad_query(retrieval_query)
@@ -284,7 +293,7 @@ class VietnamHistoryQueryEngine:
 
         is_broad = _is_broad_query(question) or _is_broad_query(retrieval_query)
         vec_top_k = _BROAD_TOP_K if is_broad else self._top_k
-        graph_top_k = _BROAD_GRAPH_TOP_K if is_broad else 10
+        graph_top_k = _BROAD_GRAPH_TOP_K if is_broad else _GRAPH_TOP_K
 
         if is_broad:
             vector_bundle, graph_bundle = await asyncio.gather(

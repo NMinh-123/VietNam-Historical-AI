@@ -22,6 +22,7 @@ from app.core.prompts.prompt_templates import (
     decompose_broad_query as _decompose_broad_query,
     parse_graph as _parse_graph,
     build_retrieval_query as _build_retrieval_query,
+    GRAPH_TOP_K as _GRAPH_TOP_K,
     BROAD_TOP_K as _BROAD_TOP_K,
     BROAD_GRAPH_TOP_K as _BROAD_GRAPH_TOP_K,
 )
@@ -76,7 +77,7 @@ class PersonaChatEngine:
 
         is_broad = _is_broad_query(question) or _is_broad_query(retrieval_query)
         vec_top_k = _BROAD_TOP_K if is_broad else self._engine._top_k
-        graph_top_k = _BROAD_GRAPH_TOP_K if is_broad else 10
+        graph_top_k = _BROAD_GRAPH_TOP_K if is_broad else _GRAPH_TOP_K
 
         if is_broad:
             sub_queries = _decompose_broad_query(retrieval_query)

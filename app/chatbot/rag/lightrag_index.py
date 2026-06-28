@@ -49,6 +49,8 @@ def build_lightrag_instance(
         chunk_token_size=_lg_cfg.chunk_token_size,
         chunk_overlap_token_size=_lg_cfg.chunk_overlap_token_size,
         max_parallel_insert=max_parallel_insert,
+        vector_storage="QdrantVectorDBStorage",
+        vector_db_storage_cls_kwargs={"cosine_better_than_threshold": 0.2},
     )
 
 
